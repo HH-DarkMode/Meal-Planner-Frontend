@@ -49,12 +49,6 @@ function App() {
     );
   }
 
-
-  // return (
-  //   <div className="app light">
-  //     <Recipes />
-  //   </div>
-  // );
 }
 
 export default App;
