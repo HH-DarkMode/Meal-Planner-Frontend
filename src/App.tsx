@@ -1,122 +1,60 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import Recipes from "./Recipes";
+
+type Theme = "light" | "dark";
 
 function App() {
-  const [count, setCount] = useState(0)
+
+  const [theme, setTheme] = useState<Theme>("light");
+  const isDarkTheme = theme === "dark";
+
+  const toggleTheme = () => {
+    setTheme(isDarkTheme ? "light" : "dark");
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className={`app ${theme}`}>
+      <Header isDarkTheme={isDarkTheme} onToggleTheme={toggleTheme} />
+      <Recipes />
+    </div>
+  );
 
-      <div className="ticks"></div>
+  function Header({ isDarkTheme, onToggleTheme }: { isDarkTheme: boolean; onToggleTheme: () => void }) {
+    return (
+      <header className="header">
+        <a className="logo" href="#home" aria-label="Siirry etusivulle">
+          <span className="logo-icon">🥗</span>
+          <span>AI Meal Planner</span>
+        </a>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <nav className="nav" aria-label="Päänavigaatio">
+          <a className="nav-link" href="#home">Etusivu</a>
+          <a className="nav-link" href="#paivan-ateriat">Ateriasuunnitelma</a>
+          <a className="nav-link  active" href="#reseptit">Reseptit</a>
+          <a className="nav-link" href="#ostoslista">Ostoslista</a>
+        </nav>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        <div className="header-actions">
+          <button className="theme-button" onClick={onToggleTheme} aria-label="Vaihda teema">
+            {isDarkTheme ? "☀" : "☾"}
+            <span>{isDarkTheme ? "Dark Mode" : "Secret button"}</span>
+          </button>
+          <span className="profile-button" aria-label="Profiili: Tanja">
+            <span className="avatar">T</span>
+            <span className="profile-name">Tanja</span>
+          </span>
+        </div>
+      </header>
+    );
+  }
+
+
+  // return (
+  //   <div className="app light">
+  //     <Recipes />
+  //   </div>
+  // );
 }
 
-export default App
+export default App;
