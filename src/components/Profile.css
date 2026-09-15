@@ -217,6 +217,70 @@ select.field-input {
   accent-color: #68c984;
 }
 
+.selection-detail-box {
+  margin: 14px 0 20px;
+  padding: 14px 16px;
+  border: 1px solid #29372e;
+  border-radius: 12px;
+  background: #1a241d;
+}
+
+.selection-detail-label {
+  color: #65ce84;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.selection-detail-title {
+  margin-top: 8px;
+  color: #f3f4ef;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.selection-detail-box p {
+  margin: 10px 0 0;
+  color: #a9b2ac;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.diet-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 26px;
+}
+
+.diet-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 13px;
+  border: 1px solid #29372e;
+  border-radius: 10px;
+  color: #a9b2ac;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.diet-option:hover,
+.diet-option.is-selected {
+  border-color: #68c984;
+  background: #202c25;
+  color: #f4f3ed;
+}
+
+.diet-option input {
+  width: 16px;
+  height: 16px;
+  accent-color: #68c984;
+}
+
 .goal-summary {
   padding-top: 4px;
 }
@@ -240,24 +304,37 @@ select.field-input {
   gap: 8px;
 }
 
-.macro-grid div {
+.macro-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   padding: 13px 8px;
   border-radius: 10px;
   background: #202c25;
   text-align: center;
+  border: 1px solid transparent;
+  cursor: text;
 }
 
-.macro-grid strong,
-.macro-grid span {
-  display: block;
-}
-
-.macro-grid strong {
+.macro-box input {
+  width: 100%;
+  border: none;
+  background: transparent;
   color: #f4f3ed;
   font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+  font-family: inherit;
+  outline: none;
 }
 
-.macro-grid span {
+.macro-box input:focus {
+  outline: none;
+}
+
+.macro-box span {
+  display: block;
   margin-top: 5px;
   color: #a9b2ac;
   font-size: 11px;
@@ -268,6 +345,81 @@ select.field-input {
   color: #7e8d83;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.nutrition-editor {
+  margin-top: 20px;
+}
+
+.nutrition-editor-panel {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid #29372e;
+  border-radius: 14px;
+  background: #151d18;
+}
+
+.nutrition-header {
+  padding-bottom: 12px;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.nutrition-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #a9b2ac;
+  font-size: 13px;
+}
+
+.nutrition-field input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #202c25;
+  color: #f3f4ef;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.nutrition-field input:focus {
+  outline: none;
+  border-color: #68c984;
+}
+
+.recipe-impact {
+  margin-top: 22px;
+}
+
+.diet-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.diet-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #202c25;
+  border: 1px solid #68c984;
+  color: #f4f3ed;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.diet-tag.empty {
+  border-color: #29372e;
+  color: #a9b2ac;
 }
 
 .goal-row {
@@ -359,7 +511,8 @@ select.field-input {
   }
 
   .goal-options,
-  .macro-grid {
+  .macro-grid,
+  .diet-options {
     grid-template-columns: 1fr 1fr;
   }
 
