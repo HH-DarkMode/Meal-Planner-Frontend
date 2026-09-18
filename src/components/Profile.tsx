@@ -155,13 +155,13 @@ function Profile() {
 
           <div className="profile-field">
             <label>Käyttäjänimi</label>
-            <input className="field-value field-input" value={username} onChange={(event) => setUsername(event.target.value)} />
+            <input className="field-value field-input" placeholder="Esim. fitness haukka" value={username} onChange={(event) => setUsername(event.target.value)} />
           </div>
 
           <div className="profile-field">
             <label>Paino</label>
             <div className="input-with-unit">
-              <input className="field-value field-input" type="number" min="30" max="300" value={weight} onChange={(event) => setWeight(event.target.value)} />
+              <input className="field-value field-input" type="number" min="30" max="300" placeholder="Esim. 80" value={weight} onChange={(event) => setWeight(event.target.value)} />
               <span>kg</span>
             </div>
           </div>
@@ -179,7 +179,7 @@ function Profile() {
             <div className="profile-field">
               <label>Pituus</label>
               <div className="input-with-unit">
-                <input className="field-value field-input" type="number" min="120" max="230" value={height} onChange={(event) => setHeight(event.target.value)} />
+                <input className="field-value field-input" type="number" min="120" max="230" placeholder="Esim. 180" value={height} onChange={(event) => setHeight(event.target.value)} />
                 <span>cm</span>
               </div>
             </div>

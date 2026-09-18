@@ -152,6 +152,11 @@
   border-color: #68c984;
 }
 
+.field-input::placeholder {
+  color: #718078;
+  font-weight: normal;
+}
+
 .input-with-unit {
   position: relative;
 }
