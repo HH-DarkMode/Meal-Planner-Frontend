@@ -1,5 +1,7 @@
 import "./Profile.css";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const profileApi = "/api/profile";
 
 const goals = [
   { id: "aggressive-bulk", label: "Aggressive bulk", adjustment: 1.2 },
@@ -49,6 +51,35 @@ function Profile() {
     fat: string;
     carbs: string;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    fetch(profileApi)
+      .then((response) => {
+        if (!response.ok) throw new Error("Profile loading failed");
+        return response.json();
+      })
+      .then((profile) => {
+        setUsername(profile.username);
+        setWeight(String(profile.weight));
+        setHeight(String(profile.height));
+        setGender(profile.gender);
+        setSelectedGoal(profile.goal);
+        setSelectedDiets(profile.diets ?? []);
+        if (profile.calories !== undefined) {
+          setCustomNutrition({
+            calories: String(profile.calories),
+            protein: String(profile.protein),
+            fat: String(profile.fat),
+            carbs: String(profile.carbs),
+          });
+        }
+      })
+      .catch(() => setMessage("Backend ei ole käynnissä."))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const nutrition = useMemo(() => {
     const currentGoal = goals.find((goal) => goal.id === selectedGoal) ?? goals[2];
@@ -113,6 +144,37 @@ function Profile() {
     }));
   };
 
+  const saveProfile = async () => {
+    setIsSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(profileApi, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username,
+          weight: Number(weight),
+          height: Number(height),
+          gender,
+          goal: selectedGoal,
+          diets: selectedDiets,
+          calories: effectiveNutrition.calories,
+          protein: effectiveNutrition.protein,
+          fat: effectiveNutrition.fat,
+          carbs: effectiveNutrition.carbs,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Profile saving failed");
+      setMessage("Muutokset tallennettu.");
+    } catch {
+      setMessage("Tallennus epäonnistui. Käynnistä backend porttiin 8080.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="profile-page">
 
@@ -132,9 +194,11 @@ function Profile() {
           </div>
         </div>
 
-        <button className="save-button">
-          Tallenna muutokset
+        <button className="save-button" onClick={saveProfile} disabled={isLoading || isSaving}>
+          {isSaving ? "Tallennetaan..." : "Tallenna muutokset"}
         </button>
+
+        {message && <p className="save-message" role="status">{message}</p>}
 
       </div>
 
