@@ -3,8 +3,9 @@ import "./App.css";
 import MealPlan from "./MealPlan";
 import Recipes from "./Recipes";
 import About from "./About";
-import Profile from "./components/Profile";
-import { emptyProfile, isProfileComplete, type ProfileData } from "./data/profile";
+import Profile from "./Profile";
+import { isProfileComplete, type ProfileData } from "./data/profile";
+import { getProfile } from "./data/profileApi";
 
 type Theme = "light" | "dark";
 type View = "home" | "meal-plan" | "recipes" | "about" | "profile";
@@ -26,9 +27,8 @@ function App() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/profile")
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error("Profile loading failed")))
-      .then((data: Partial<ProfileData>) => setProfile({ ...emptyProfile, ...data, diets: data.diets ?? [] }))
+    getProfile()
+      .then(setProfile)
       .catch(() => setProfile(null));
   }, []);
 

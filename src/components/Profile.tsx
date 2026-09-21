@@ -1,8 +1,7 @@
 import "./Profile.css";
 import { useEffect, useMemo, useState } from "react";
 import { type ProfileData } from "../data/profile";
-
-const profileApi = "http://localhost:8080/api/profile";
+import { getProfile, saveProfile as persistProfile } from "../data/profileApi";
 
 const goals = [
   { id: "aggressive-bulk", label: "Aggressive bulk", adjustment: 1.2 },
@@ -66,11 +65,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
       return;
     }
 
-    fetch(profileApi)
-      .then((response) => {
-        if (!response.ok) throw new Error("Profile loading failed");
-        return response.json();
-      })
+    getProfile()
       .then((profile) => {
         setUsername(profile.username);
         setWeight(String(profile.weight));
@@ -163,25 +158,18 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
     setMessage("");
 
     try {
-      const response = await fetch(profileApi, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          weight: Number(weight),
-          height: Number(height),
-          gender,
-          goal: selectedGoal,
-          diets: selectedDiets,
-          calories: effectiveNutrition.calories,
-          protein: effectiveNutrition.protein,
-          fat: effectiveNutrition.fat,
-          carbs: effectiveNutrition.carbs,
-        }),
+      const savedProfile = await persistProfile({
+        username,
+        weight: Number(weight),
+        height: Number(height),
+        gender,
+        goal: selectedGoal,
+        diets: selectedDiets,
+        calories: effectiveNutrition.calories,
+        protein: effectiveNutrition.protein,
+        fat: effectiveNutrition.fat,
+        carbs: effectiveNutrition.carbs,
       });
-
-      if (!response.ok) throw new Error("Profile saving failed");
-      const savedProfile = await response.json() as ProfileData;
       onProfileSaved(savedProfile);
       setMessage("Muutokset tallennettu.");
     } catch {
