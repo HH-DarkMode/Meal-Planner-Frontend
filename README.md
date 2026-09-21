@@ -1,13 +1,5 @@
 # AI Meal Planner – Frontend
 
-## Projektin kuvaus
-
-**AI Meal Planner** on verkkosovelluksen frontend, jonka tarkoituksena on tarjota käyttäjälle helppokäyttöinen käyttöliittymä henkilökohtaisten ateriasuunnitelmien, reseptien ja ostoslistojen hallintaan.
-
-Sovelluksessa käyttäjä voi määrittää omat ravitsemustavoitteensa, ruokamieltymyksensä ja käytettävissä olevat raaka-aineensa. Tämän jälkeen tekoälyä voidaan hyödyntää reseptien ja meal planien muodostamiseen.
-
-Frontend kommunikoi Spring Boot -backendin kanssa REST API välityksellä.
-
 ## Tärkeimmät ominaisuudet
 
 Käyttäjä voi esimerkiksi:
