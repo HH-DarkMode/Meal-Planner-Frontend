@@ -1,7 +1,8 @@
 import "./Profile.css";
 import { useEffect, useMemo, useState } from "react";
+import { type ProfileData } from "../data/profile";
 
-const profileApi = "/api/profile";
+const profileApi = "http://localhost:8080/api/profile";
 
 const goals = [
   { id: "aggressive-bulk", label: "Aggressive bulk", adjustment: 1.2 },
@@ -37,25 +38,34 @@ const dietDescriptions: Record<string, string> = {
   "low-carb": "Matala hiilihydraatti vähentää hiilihydraattien määrää ja keskittyy enemmän proteiiniin ja rasvoihin.",
 };
 
-function Profile() {
-  const [username, setUsername] = useState("Samuel");
-  const [weight, setWeight] = useState("80");
-  const [gender, setGender] = useState("mies");
-  const [height, setHeight] = useState("180");
-  const [selectedGoal, setSelectedGoal] = useState("healthy");
-  const [selectedDiets, setSelectedDiets] = useState<string[]>(["vegetarian"]);
-  const [focusedDiet, setFocusedDiet] = useState<string>("vegetarian");
+function Profile({ profile: initialProfile, onProfileSaved }: { profile: ProfileData | null; onProfileSaved: (profile: ProfileData) => void }) {
+  const [username, setUsername] = useState(initialProfile?.username ?? "");
+  const [weight, setWeight] = useState(initialProfile?.weight === null || initialProfile?.weight === undefined ? "" : String(initialProfile.weight));
+  const [gender, setGender] = useState(initialProfile?.gender ?? "");
+  const [height, setHeight] = useState(initialProfile?.height === null || initialProfile?.height === undefined ? "" : String(initialProfile.height));
+  const [selectedGoal, setSelectedGoal] = useState(initialProfile?.goal ?? "");
+  const [selectedDiets, setSelectedDiets] = useState<string[]>(initialProfile?.diets ?? []);
+  const [focusedDiet, setFocusedDiet] = useState<string>(initialProfile?.diets[0] ?? "");
   const [customNutrition, setCustomNutrition] = useState<{
     calories: string;
     protein: string;
     fat: string;
     carbs: string;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  } | null>(initialProfile?.calories === null || initialProfile?.calories === undefined ? null : {
+    calories: String(initialProfile.calories),
+    protein: String(initialProfile.protein ?? ""),
+    fat: String(initialProfile.fat ?? ""),
+    carbs: String(initialProfile.carbs ?? ""),
+  });
+  const [isLoading, setIsLoading] = useState(!initialProfile);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    if (initialProfile) {
+      return;
+    }
+
     fetch(profileApi)
       .then((response) => {
         if (!response.ok) throw new Error("Profile loading failed");
@@ -68,7 +78,7 @@ function Profile() {
         setGender(profile.gender);
         setSelectedGoal(profile.goal);
         setSelectedDiets(profile.diets ?? []);
-        if (profile.calories !== undefined) {
+        if (profile.calories !== undefined && profile.calories !== null) {
           setCustomNutrition({
             calories: String(profile.calories),
             protein: String(profile.protein),
@@ -79,10 +89,14 @@ function Profile() {
       })
       .catch(() => setMessage("Backend ei ole käynnissä."))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [initialProfile]);
 
   const nutrition = useMemo(() => {
-    const currentGoal = goals.find((goal) => goal.id === selectedGoal) ?? goals[2];
+    if (!weight || !height || !gender) {
+      return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    }
+
+    const currentGoal = goals.find((goal) => goal.id === selectedGoal) ?? { adjustment: 1 };
     const numericWeight = Number(weight) || 0;
     const numericHeight = Number(height) || 0;
     const baseCalories = 10 * numericWeight + 6.25 * numericHeight + (gender === "mies" ? 5 : -161);
@@ -104,7 +118,7 @@ function Profile() {
     : nutrition;
 
   const initials = username.trim().slice(0, 2).toUpperCase() || "??";
-  const activeGoal = goals.find((goal) => goal.id === selectedGoal) ?? goals[2];
+  const activeGoal = goals.find((goal) => goal.id === selectedGoal);
 
   const toggleDiet = (dietId: string) => {
     setSelectedDiets((current) => {
@@ -124,7 +138,7 @@ function Profile() {
     .filter((diet) => selectedDiets.includes(diet.id))
     .map((diet) => diet.label);
 
-  const activeGoalDescription = goalDescriptions[selectedGoal] ?? goalDescriptions.healthy;
+  const activeGoalDescription = selectedGoal ? goalDescriptions[selectedGoal] : "Valitse tavoite nähdäksesi kuvauksen.";
   const activeDietDescription = selectedDiets.length > 0
     ? dietDescriptions[focusedDiet] ?? dietDescriptions.vegetarian
     : "";
@@ -167,6 +181,8 @@ function Profile() {
       });
 
       if (!response.ok) throw new Error("Profile saving failed");
+      const savedProfile = await response.json() as ProfileData;
+      onProfileSaved(savedProfile);
       setMessage("Muutokset tallennettu.");
     } catch {
       setMessage("Tallennus epäonnistui. Käynnistä backend porttiin 8080.");
@@ -235,6 +251,7 @@ function Profile() {
             <div className="profile-field">
               <label>Sukupuoli</label>
               <select className="field-value field-input" value={gender} onChange={(event) => setGender(event.target.value)}>
+                <option value="">Valitse sukupuoli</option>
                 <option value="mies">Mies</option>
                 <option value="nainen">Nainen</option>
               </select>
@@ -279,7 +296,7 @@ function Profile() {
 
           <div className="selection-detail-box">
             <div className="selection-detail-label">Valittu tavoite</div>
-            <div className="selection-detail-title">{activeGoal.label}</div>
+            <div className="selection-detail-title">{activeGoal?.label ?? "Ei valittua tavoitetta"}</div>
             <p>{activeGoalDescription}</p>
           </div>
 
