@@ -1,0 +1,36 @@
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 44px;
+  background: #0b0f0c;
+  border-bottom: 1px solid #26312a;
+  font-family: Arial, sans-serif;
+}
+
+.app-nav-logo {
+  margin-right: auto;
+  color: #f4f3ed;
+  font-weight: bold;
+}
+
+.app-nav button {
+  padding: 8px 18px;
+  border: 1px solid #26312a;
+  border-radius: 8px;
+  background: transparent;
+  color: #f4f3ed;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.app-nav button:hover {
+  border-color: #68c984;
+}
+
+.app-nav button.is-active {
+  background: #68c984;
+  border-color: #68c984;
+  color: #101512;
+  font-weight: bold;
+}
