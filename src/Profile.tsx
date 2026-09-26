@@ -6,35 +6,35 @@ import { getProfile, saveProfile as persistProfile } from "./data/profileApi";
 const goals = [
   { id: "aggressive-bulk", label: "Aggressive bulk", adjustment: 1.2 },
   { id: "bulk", label: "Bulk", adjustment: 1.1 },
-  { id: "healthy", label: "Terveellinen ruokavalio", adjustment: 1 },
+  { id: "healthy", label: "Healthy diet", adjustment: 1 },
   { id: "cut", label: "Cut", adjustment: 0.85 },
   { id: "aggressive-cut", label: "Aggressive cut", adjustment: 0.75 },
 ];
 
 const dietaryOptions = [
-  { id: "vegetarian", label: "Kasvissyöjä" },
-  { id: "vegan", label: "Vegaani" },
-  { id: "gluten-free", label: "Gluteeniton" },
-  { id: "dairy-free", label: "Laktoositon" },
-  { id: "high-protein", label: "Korkea proteiini" },
-  { id: "low-carb", label: "Matala hiilihydraatti" },
+  { id: "vegetarian", label: "Vegetarian" },
+  { id: "vegan", label: "Vegan" },
+  { id: "gluten-free", label: "Gluten-free" },
+  { id: "dairy-free", label: "Dairy-free" },
+  { id: "high-protein", label: "High protein" },
+  { id: "low-carb", label: "Low carb" },
 ];
 
 const goalDescriptions: Record<string, string> = {
-  "aggressive-bulk": "Aggressive bulk lisää kaloreita ja energiaa nopeasti, jotta lihasmassa kasvaa mahdollisimman tehokkaasti.",
-  bulk: "Bulk tukee maltillisempaa lihaskasvua ja antaa hieman enemmän energiaa kuin perusruokavalio.",
-  healthy: "Terveellinen ruokavalio on tasapainoinen valinta, joka pitää proteiinin, rasvan ja hiilihydraatit kohtuullisella tasolla.",
-  cut: "Cut vähentää kaloreita ja auttaa laihtumisessa säilyttäen lihasmassan.",
-  "aggressive-cut": "Aggressive cut on voimakkaampi leikkausvaihe, jossa kalorit ovat alhaisemmat ja ruokavalio on tarkemmin kontrolloitu.",
+  "aggressive-bulk": "Aggressive bulk adds calories and energy quickly to support maximum muscle growth.",
+  bulk: "Bulk supports more gradual muscle growth with slightly more energy than a maintenance diet.",
+  healthy: "A healthy diet is a balanced choice that keeps protein, fat, and carbs at moderate levels.",
+  cut: "Cut reduces calories to support fat loss while preserving muscle mass.",
+  "aggressive-cut": "Aggressive cut is a stronger cutting phase with lower calories and tighter control.",
 };
 
 const dietDescriptions: Record<string, string> = {
-  vegetarian: "Kasvissyöjä tarkoittaa, että syöt kasvikunnan tuotteita, mutta et käytä lihaa tai kalaa.",
-  vegan: "Vegaani tarkoittaa, että et käytä mitään eläinperäisiä tuotteita, kuten maitoa, kananmunia tai hunajaa.",
-  "gluten-free": "Gluteeniton tarkoittaa, että vältät vehnä-, kaura- ja ohrajuuresta tulevaa gluteenia.",
-  "dairy-free": "Laktoositon tarkoittaa, että vältät maitoa ja sen tuotteita, kuten juustoa ja kermaa.",
-  "high-protein": "Korkea proteiini lisää proteiinin osuutta, jotta olet vahvempi ja täyttävämpi.",
-  "low-carb": "Matala hiilihydraatti vähentää hiilihydraattien määrää ja keskittyy enemmän proteiiniin ja rasvoihin.",
+  vegetarian: "Vegetarian means eating plant-based foods without meat or fish.",
+  vegan: "Vegan means avoiding all animal products, such as milk, eggs, and honey.",
+  "gluten-free": "Gluten-free means avoiding gluten from wheat, oats, and barley.",
+  "dairy-free": "Dairy-free means avoiding milk and products such as cheese and cream.",
+  "high-protein": "High protein increases the share of protein to help you feel stronger and fuller.",
+  "low-carb": "Low carb reduces carbohydrates and focuses more on protein and fats.",
 };
 
 function Profile({ profile: initialProfile, onProfileSaved }: { profile: ProfileData | null; onProfileSaved: (profile: ProfileData) => void }) {
@@ -42,6 +42,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
   const [weight, setWeight] = useState(initialProfile?.weight === null || initialProfile?.weight === undefined ? "" : String(initialProfile.weight));
   const [gender, setGender] = useState(initialProfile?.gender ?? "");
   const [height, setHeight] = useState(initialProfile?.height === null || initialProfile?.height === undefined ? "" : String(initialProfile.height));
+  const [mealsPerDay, setMealsPerDay] = useState(initialProfile?.mealsPerDay === null || initialProfile?.mealsPerDay === undefined ? "" : String(initialProfile.mealsPerDay));
   const [selectedGoal, setSelectedGoal] = useState(initialProfile?.goal ?? "");
   const [selectedDiets, setSelectedDiets] = useState<string[]>(initialProfile?.diets ?? []);
   const [focusedDiet, setFocusedDiet] = useState<string>(initialProfile?.diets[0] ?? "");
@@ -70,6 +71,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
         setUsername(profile.username);
         setWeight(String(profile.weight));
         setHeight(String(profile.height));
+        setMealsPerDay(profile.mealsPerDay === null || profile.mealsPerDay === undefined ? "" : String(profile.mealsPerDay));
         setGender(profile.gender);
         setSelectedGoal(profile.goal);
         setSelectedDiets(profile.diets ?? []);
@@ -82,7 +84,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           });
         }
       })
-      .catch(() => setMessage("Backend ei ole käynnissä."))
+      .catch(() => setMessage("The backend is not running."))
       .finally(() => setIsLoading(false));
   }, [initialProfile]);
 
@@ -133,7 +135,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
     .filter((diet) => selectedDiets.includes(diet.id))
     .map((diet) => diet.label);
 
-  const activeGoalDescription = selectedGoal ? goalDescriptions[selectedGoal] : "Valitse tavoite nähdäksesi kuvauksen.";
+  const activeGoalDescription = selectedGoal ? goalDescriptions[selectedGoal] : "Select a goal to see its description.";
   const activeDietDescription = selectedDiets.length > 0
     ? dietDescriptions[focusedDiet] ?? dietDescriptions.vegetarian
     : "";
@@ -141,7 +143,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
   const recipePreferenceSummary =
     selectedDietLabels.length > 0
       ? selectedDietLabels.join(", ")
-      : "Ei erikoisruokavalioita";
+      : "No dietary preferences";
 
   const updateCustomNutrition = (field: keyof NonNullable<typeof customNutrition>, value: string) => {
     setCustomNutrition((current) => ({
@@ -162,6 +164,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
         username,
         weight: Number(weight),
         height: Number(height),
+        mealsPerDay: mealsPerDay ? Number(mealsPerDay) : null,
         gender,
         goal: selectedGoal,
         diets: selectedDiets,
@@ -171,9 +174,9 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
         carbs: effectiveNutrition.carbs,
       });
       onProfileSaved(savedProfile);
-      setMessage("Muutokset tallennettu.");
+      setMessage("Changes saved.");
     } catch {
-      setMessage("Tallennus epäonnistui. Käynnistä backend porttiin 8080.");
+      setMessage("Saving failed. Start the backend on port 8080.");
     } finally {
       setIsSaving(false);
     }
@@ -189,17 +192,16 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           <div className="profile-avatar">{initials}</div>
 
           <div>
-            <div className="profile-label">OMA PROFIILI</div>
-            <h1>Hei, {username || "sinä"}!</h1>
+            <div className="profile-label">MY PROFILE</div>
+            <h1>Hello, {username || "there"}!</h1>
             <p>
-              Pidä tavoitteesi ja mieltymyksesi ajan tasalla, niin saat juuri
-              sinulle sopivia suosituksia.
+              Keep your goals and preferences up to date for recommendations that fit you.
             </p>
           </div>
         </div>
 
         <button className="save-button" onClick={saveProfile} disabled={isLoading || isSaving}>
-          {isSaving ? "Tallennetaan..." : "Tallenna muutokset"}
+          {isSaving ? "Saving..." : "Save changes"}
         </button>
 
         {message && <p className="save-message" role="status">{message}</p>}
@@ -214,39 +216,47 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
 
           <div className="card-heading">
             <div>
-              <span className="card-label">PERUSTIEDOT</span>
-              <h2>Minun tietoni</h2>
+              <span className="card-label">PERSONAL DETAILS</span>
+              <h2>My details</h2>
             </div>
 
             <span className="card-icon">✎</span>
           </div>
 
           <div className="profile-field">
-            <label>Käyttäjänimi</label>
-            <input className="field-value field-input" placeholder="Esim. fitness haukka" value={username} onChange={(event) => setUsername(event.target.value)} />
+            <label>Username</label>
+            <input className="field-value field-input" placeholder="e.g. Alex" value={username} onChange={(event) => setUsername(event.target.value)} />
           </div>
 
           <div className="profile-field">
-            <label>Paino</label>
+            <label>Weight</label>
             <div className="input-with-unit">
               <input className="field-value field-input" type="number" min="30" max="300" placeholder="Esim. 80" value={weight} onChange={(event) => setWeight(event.target.value)} />
               <span>kg</span>
             </div>
           </div>
 
+          <div className="profile-field">
+            <label>Meals per day</label>
+            <div className="input-with-unit">
+              <input className="field-value field-input" type="number" min="1" max="8" placeholder="e.g. 4" value={mealsPerDay} onChange={(event) => setMealsPerDay(event.target.value)} />
+              <span>meals</span>
+            </div>
+          </div>
+
           <div className="field-row">
 
             <div className="profile-field">
-              <label>Sukupuoli</label>
+              <label>Gender</label>
               <select className="field-value field-input" value={gender} onChange={(event) => setGender(event.target.value)}>
-                <option value="">Valitse sukupuoli</option>
-                <option value="mies">Mies</option>
-                <option value="nainen">Nainen</option>
+                <option value="">Select gender</option>
+                <option value="mies">Male</option>
+                <option value="nainen">Female</option>
               </select>
             </div>
 
             <div className="profile-field">
-              <label>Pituus</label>
+              <label>Height</label>
               <div className="input-with-unit">
                 <input className="field-value field-input" type="number" min="120" max="230" placeholder="Esim. 180" value={height} onChange={(event) => setHeight(event.target.value)} />
                 <span>cm</span>
@@ -262,8 +272,8 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
 
           <div className="card-heading">
             <div>
-              <span className="card-label">TAVOITTEET</span>
-              <h2>Hyvinvointisi</h2>
+              <span className="card-label">GOALS</span>
+              <h2>Your wellbeing</h2>
             </div>
 
             <span className="card-icon">♥</span>
@@ -283,8 +293,8 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           </div>
 
           <div className="selection-detail-box">
-            <div className="selection-detail-label">Valittu tavoite</div>
-            <div className="selection-detail-title">{activeGoal?.label ?? "Ei valittua tavoitetta"}</div>
+            <div className="selection-detail-label">Selected goal</div>
+            <div className="selection-detail-title">{activeGoal?.label ?? "No goal selected"}</div>
             <p>{activeGoalDescription}</p>
           </div>
 
@@ -303,15 +313,15 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
 
           {selectedDiets.length > 0 && (
             <div className="selection-detail-box">
-              <div className="selection-detail-label">Valittu ruokavalio</div>
-              <div className="selection-detail-title">{dietaryOptions.find((diet) => diet.id === focusedDiet)?.label ?? "Kasvissyöjä"}</div>
+              <div className="selection-detail-label">Selected diet</div>
+              <div className="selection-detail-title">{dietaryOptions.find((diet) => diet.id === focusedDiet)?.label ?? "Vegetarian"}</div>
               <p>{activeDietDescription}</p>
             </div>
           )}
 
           <div className="goal-summary">
             <div className="goal-summary-heading">
-              <span>Ravintotavoite</span>
+                <span>Nutrition target</span>
             </div>
             <div className="macro-grid">
               <label className="macro-box">
@@ -321,7 +331,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                   value={customNutrition?.calories ?? effectiveNutrition.calories}
                   onChange={(event) => updateCustomNutrition("calories", event.target.value)}
                 />
-                <span>kcal / päivä</span>
+                <span>kcal / day</span>
               </label>
 
               <label className="macro-box">
@@ -331,7 +341,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                   value={customNutrition?.protein ?? effectiveNutrition.protein}
                   onChange={(event) => updateCustomNutrition("protein", event.target.value)}
                 />
-                <span>proteiini</span>
+                <span>protein</span>
               </label>
 
               <label className="macro-box">
@@ -341,7 +351,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                   value={customNutrition?.fat ?? effectiveNutrition.fat}
                   onChange={(event) => updateCustomNutrition("fat", event.target.value)}
                 />
-                <span>rasva</span>
+                <span>fat</span>
               </label>
 
               <label className="macro-box">
@@ -351,17 +361,17 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                   value={customNutrition?.carbs ?? effectiveNutrition.carbs}
                   onChange={(event) => updateCustomNutrition("carbs", event.target.value)}
                 />
-                <span>hiilarit</span>
+                <span>carbs</span>
               </label>
             </div>
-            <p className="estimate-note">Arvio perustuu tietoihisi ja aktiivisuuskertoimeen 1,4.</p>
+            <p className="estimate-note">This estimate is based on your details and an activity factor of 1.4.</p>
           </div>
 
           {selectedDiets.length > 0 && (
             <div className="recipe-impact">
               <div className="goal-summary-heading">
-                <span>Reseptien huomioiminen</span>
-                <strong>Aktivoi</strong>
+                <span>Recipe preferences</span>
+                <strong>Active</strong>
               </div>
               <div className="diet-tag-list">
                 {selectedDietLabels.map((label) => (
@@ -369,7 +379,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                 ))}
               </div>
               <p className="estimate-note">
-                Reseptisuositukset huomioivat nämä valinnat myöhemmin: {recipePreferenceSummary}.
+                Future recipe recommendations will consider these preferences: {recipePreferenceSummary}.
               </p>
             </div>
           )}

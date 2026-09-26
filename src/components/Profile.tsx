@@ -162,6 +162,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
         username,
         weight: Number(weight),
         height: Number(height),
+        mealsPerDay: null,
         gender,
         goal: selectedGoal,
         diets: selectedDiets,

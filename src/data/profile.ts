@@ -2,6 +2,7 @@ export type ProfileData = {
   username: string;
   weight: number | null;
   height: number | null;
+  mealsPerDay: number | null;
   gender: string;
   goal: string;
   diets: string[];
@@ -15,6 +16,7 @@ export const emptyProfile: ProfileData = {
   username: "",
   weight: null,
   height: null,
+  mealsPerDay: null,
   gender: "",
   goal: "",
   diets: [],
