@@ -62,11 +62,40 @@ button {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 0;
   font-size: 18px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.brand-mark {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  color: var(--green);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.brand-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  color: var(--text);
+}
+
+.brand-subtitle {
+  margin-top: 4px;
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .logo-icon {

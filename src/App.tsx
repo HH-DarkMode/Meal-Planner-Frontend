@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import brandLogo from "./assets/brand-logo.svg.jpg";
 import MealPlan from "./MealPlan";
 import Recipes from "./Recipes";
 import About from "./About";
@@ -50,7 +51,13 @@ function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggl
     { view: "about", label: "About us" },
   ];
   return <header className="header">
-    <button className="logo" onClick={() => navigate("home")} aria-label="Go to home">AI Meal Planner</button>
+    <button type="button" className="logo" onClick={() => navigate("home")} aria-label="Go to home">
+      <img className="brand-mark" src={brandLogo} alt="DarkMode AI Meal Planner logo" />
+      <span className="brand-text">
+        <span className="brand-name">DarkMode</span>
+        <span className="brand-subtitle">AI Meal Planner</span>
+      </span>
+    </button>
     <button className="menu-toggle" onClick={onToggleMenu} aria-expanded={isMenuOpen} aria-controls="main-navigation" aria-label={isMenuOpen ? "Close menu" : "Open menu"}><span /><span /><span /></button>
     <nav className={`nav ${isMenuOpen ? "is-open" : ""}`} id="main-navigation" aria-label="Main navigation">{links.map((link) => <button className={`nav-link ${view === link.view ? "active" : ""}`} key={link.view} onClick={() => navigate(link.view)}>{link.label}</button>)}</nav>
     <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label="Toggle theme">{isDarkTheme ? "☀" : "☾"}<span>{isDarkTheme ? "Light mode" : "Dark mode"}</span></button><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">??</span><span className="profile-name">Profile</span></button></div>
