@@ -3,13 +3,14 @@ import "./App.css";
 import brandLogo from "./assets/brand-logo.svg.jpg";
 import MealPlan from "./MealPlan";
 import Recipes from "./Recipes";
+import Calendar from "./Calendar";
 import About from "./About";
 import Profile from "./Profile";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import { getProfile } from "./data/profileApi";
 
 type Theme = "light" | "dark";
-type View = "home" | "meal-plan" | "recipes" | "about" | "profile";
+type View = "home" | "meal-plan" | "recipes" | "calendar" | "about" | "profile";
 
 type Navigation = {
   navigate: (view: View) => void;
@@ -38,6 +39,7 @@ function App() {
     {view === "home" && <Home navigate={navigate} profile={profile} />}
     {view === "meal-plan" && <MealPlan />}
     {view === "recipes" && <Recipes />}
+    {view === "calendar" && <Calendar />}
     {view === "about" && <About />}
     {view === "profile" && <Profile profile={profile} onProfileSaved={setProfile} />}
   </div>;
@@ -48,6 +50,7 @@ function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggl
     { view: "home", label: "Home" },
     { view: "meal-plan", label: "Meal plan" },
     { view: "recipes", label: "Recipes" },
+    { view: "calendar", label: "Calendar" },
     { view: "about", label: "About us" },
   ];
   return <header className="header">
