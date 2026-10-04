@@ -333,3 +333,14 @@
     gap: 2px;
   }
 }
+/* Backendiltä haetut reseptit: viestit ja ruokavaliovaroitus */
+.recipes-message {
+  margin: 8px 0 0;
+  opacity: 0.8;
+}
+
+.recipe-warning {
+  margin: 8px 0 0;
+  color: #b7791f;
+  font-size: 0.85rem;
+}
