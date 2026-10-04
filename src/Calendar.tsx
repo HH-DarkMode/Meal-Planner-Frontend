@@ -8,6 +8,9 @@ type Meal = {
   type: string;
   name: string;
   calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
   icon: string;
   eaten: boolean;
 };
@@ -20,33 +23,45 @@ const initialMeals: DayMeals = {
   "2026-10-04": [
     {
       id: 1,
-      type: "Aamiainen",
-      name: "Proteiinikaurapuuro",
+      type: "Breakfast",
+      name: "Protein oatmeal",
       calories: 520,
+      protein: 30,
+      carbs: 55,
+      fat: 15,
       icon: "🥣",
       eaten: true,
     },
     {
       id: 2,
-      type: "Lounas",
-      name: "Naudanliha-riisikulho",
+      type: "Lunch",
+      name: "Beef and rice bowl",
       calories: 680,
+      protein: 42,
+      carbs: 70,
+      fat: 22,
       icon: "🥩",
       eaten: false,
     },
     {
       id: 3,
-      type: "Välipala",
-      name: "Kreikkalainen jogurtti",
+      type: "Snack",
+      name: "Greek yogurt",
       calories: 320,
+      protein: 20,
+      carbs: 25,
+      fat: 12,
       icon: "🥛",
       eaten: false,
     },
     {
       id: 4,
-      type: "Päivällinen",
-      name: "Kana-pasta",
+      type: "Dinner",
+      name: "Chicken pasta",
       calories: 620,
+      protein: 40,
+      carbs: 65,
+      fat: 18,
       icon: "🍝",
       eaten: false,
     },
@@ -55,33 +70,45 @@ const initialMeals: DayMeals = {
   "2026-10-05": [
     {
       id: 5,
-      type: "Aamiainen",
-      name: "Munakas ja täysjyväleipä",
+      type: "Breakfast",
+      name: "Omelette and whole grain bread",
       calories: 450,
+      protein: 28,
+      carbs: 35,
+      fat: 20,
       icon: "🍳",
       eaten: false,
     },
     {
       id: 6,
-      type: "Lounas",
-      name: "Kana-caesarsalaatti",
+      type: "Lunch",
+      name: "Chicken Caesar salad",
       calories: 590,
+      protein: 38,
+      carbs: 25,
+      fat: 32,
       icon: "🥗",
       eaten: false,
     },
     {
       id: 7,
-      type: "Välipala",
-      name: "Banaani ja rahka",
+      type: "Snack",
+      name: "Banana and quark",
       calories: 280,
+      protein: 18,
+      carbs: 35,
+      fat: 5,
       icon: "🍌",
       eaten: false,
     },
     {
       id: 8,
-      type: "Päivällinen",
-      name: "Lohi ja perunat",
+      type: "Dinner",
+      name: "Salmon and potatoes",
       calories: 650,
+      protein: 42,
+      carbs: 45,
+      fat: 28,
       icon: "🐟",
       eaten: false,
     },
@@ -90,33 +117,45 @@ const initialMeals: DayMeals = {
   "2026-10-06": [
     {
       id: 9,
-      type: "Aamiainen",
-      name: "Smoothie",
+      type: "Breakfast",
+      name: "Berry smoothie",
       calories: 380,
+      protein: 22,
+      carbs: 50,
+      fat: 10,
       icon: "🥤",
       eaten: false,
     },
     {
       id: 10,
-      type: "Lounas",
-      name: "Kana-riisi",
+      type: "Lunch",
+      name: "Chicken and rice",
       calories: 650,
+      protein: 45,
+      carbs: 70,
+      fat: 16,
       icon: "🍗",
       eaten: false,
     },
     {
       id: 11,
-      type: "Välipala",
-      name: "Omena ja pähkinät",
+      type: "Snack",
+      name: "Apple and nuts",
       calories: 300,
+      protein: 7,
+      carbs: 30,
+      fat: 18,
       icon: "🍎",
       eaten: false,
     },
     {
       id: 12,
-      type: "Päivällinen",
-      name: "Kasvispasta",
+      type: "Dinner",
+      name: "Vegetable pasta",
       calories: 560,
+      protein: 20,
+      carbs: 75,
+      fat: 18,
       icon: "🍝",
       eaten: false,
     },
@@ -125,33 +164,45 @@ const initialMeals: DayMeals = {
   "2026-10-07": [
     {
       id: 13,
-      type: "Aamiainen",
-      name: "Jogurtti ja marjat",
+      type: "Breakfast",
+      name: "Yogurt and berries",
       calories: 350,
+      protein: 20,
+      carbs: 35,
+      fat: 12,
       icon: "🫐",
       eaten: false,
     },
     {
       id: 14,
-      type: "Lounas",
-      name: "Jauheliha-perunavuoka",
+      type: "Lunch",
+      name: "Ground beef and potato casserole",
       calories: 680,
+      protein: 40,
+      carbs: 55,
+      fat: 30,
       icon: "🥘",
       eaten: false,
     },
     {
       id: 15,
-      type: "Välipala",
+      type: "Snack",
       name: "Smoothie",
       calories: 300,
+      protein: 18,
+      carbs: 40,
+      fat: 8,
       icon: "🥤",
       eaten: false,
     },
     {
       id: 16,
-      type: "Päivällinen",
-      name: "Tortillat",
+      type: "Dinner",
+      name: "Chicken tortillas",
       calories: 620,
+      protein: 38,
+      carbs: 60,
+      fat: 22,
       icon: "🌯",
       eaten: false,
     },
@@ -162,16 +213,14 @@ function Calendar() {
   const today = new Date();
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-
-  const [meals, setMeals] =
-    useState<DayMeals>(initialMeals);
+  const [meals, setMeals] = useState<DayMeals>(initialMeals);
 
   function formatDate(date: Date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
 
-    return `${year} -${month} -${day} `;
+    return `${year}-${month}-${day}`;
   }
 
   function handleDateChange(value: Value) {
@@ -185,18 +234,16 @@ function Calendar() {
       const updatedMeals = { ...currentMeals };
 
       Object.keys(updatedMeals).forEach((date) => {
-        updatedMeals[date] = updatedMeals[date].map(
-          (meal) => {
-            if (meal.id === mealId) {
-              return {
-                ...meal,
-                eaten: !meal.eaten,
-              };
-            }
-
-            return meal;
+        updatedMeals[date] = updatedMeals[date].map((meal) => {
+          if (meal.id === mealId) {
+            return {
+              ...meal,
+              eaten: !meal.eaten,
+            };
           }
-        );
+
+          return meal;
+        });
       });
 
       return updatedMeals;
@@ -205,23 +252,30 @@ function Calendar() {
 
   const selectedDateString = formatDate(selectedDate);
 
-  const selectedMeals =
-    meals[selectedDateString] || [];
+  const selectedMeals = meals[selectedDateString] || [];
 
   const totalCalories = selectedMeals.reduce(
     (total, meal) => total + meal.calories,
     0
   );
 
-  const eatenCalories = selectedMeals
-    .filter((meal) => meal.eaten)
-    .reduce(
-      (total, meal) => total + meal.calories,
-      0
-    );
+  const totalProtein = selectedMeals.reduce(
+    (total, meal) => total + meal.protein,
+    0
+  );
+
+  const totalCarbs = selectedMeals.reduce(
+    (total, meal) => total + meal.carbs,
+    0
+  );
+
+  const totalFat = selectedMeals.reduce(
+    (total, meal) => total + meal.fat,
+    0
+  );
 
   function getSelectedDateText() {
-    return selectedDate.toLocaleDateString("fi-FI", {
+    return selectedDate.toLocaleDateString("en-US", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -232,68 +286,58 @@ function Calendar() {
   return (
     <div className="calendar-page">
 
+      {/* Page header */}
       <div className="calendar-page-header">
-        <span className="calendar-badge">
-          MEAL PLANNER
-        </span>
+        <span className="calendar-badge">✦ AI MEAL PLANNER</span>
 
-        <p className="calendar-eyebrow">
-          ATERIASUUNNITTELU
-        </p>
+        <p className="calendar-eyebrow">CALENDAR</p>
 
         <h1>
-          Oma <span>kalenteri.</span>
+          My <span>calendar.</span>
         </h1>
 
         <p className="calendar-description">
-          Suunnittele viikon ateriat ja seuraa
-          päivän ruokailuja helposti yhdestä paikasta.
+          Plan your weekly meals and keep track of your daily nutrition in
+          one place.
         </p>
       </div>
 
+      {/* Calendar */}
       <section className="calendar-section">
-
         <div className="calendar-section-heading">
           <div>
-            <div className="calendar-section-label">
-              KALENTERI
-            </div>
+            <div className="calendar-section-label">MEAL PLAN</div>
 
-            <h2>
-              Ateriasuunnitelma
-            </h2>
+            <h2>Meal plan</h2>
 
             <p className="calendar-section-subtitle">
-              Valitse päivä nähdäksesi sen ateriat.
+              Select a day to see your meals.
             </p>
           </div>
         </div>
 
         <div className="calendar-card">
-
           <CalendarComponent
             onChange={handleDateChange}
             value={selectedDate}
-            locale="fi-FI"
+            locale="en-US"
             calendarType="iso8601"
           />
-
         </div>
       </section>
 
+      {/* Selected day */}
       <section className="selected-day-section">
-
         <div className="selected-day-heading">
           <div>
             <div className="calendar-section-label">
-              VALITTU PÄIVÄ
+              SELECTED DAY
             </div>
 
             <h2>
-              {selectedDateString ===
-                formatDate(today)
-                ? "Tänään"
-                : "Päivän ateriat"}
+              {selectedDateString === formatDate(today)
+                ? "Today"
+                : "Daily meals"}
             </h2>
 
             <p className="calendar-section-subtitle">
@@ -301,90 +345,80 @@ function Calendar() {
             </p>
           </div>
 
+          {/* Daily nutrition */}
           <div className="calorie-summary">
-            <span>SYÖTY</span>
+            <span>DAILY NUTRITION</span>
+
             <strong>
-              {eatenCalories} kcal
+              {totalCalories} kcal · {totalProtein} g protein ·{" "}
+              {totalCarbs} g carbs · {totalFat} g fat
             </strong>
           </div>
         </div>
 
+        {/* No meals */}
         {selectedMeals.length === 0 ? (
           <div className="no-meals">
-            <div className="no-meals-icon">
-              🍽️
-            </div>
+            <div className="no-meals-icon">🍽️</div>
 
-            <h3>
-              Ei aterioita
-            </h3>
+            <h3>No meals planned</h3>
 
             <p>
-              Tälle päivälle ei ole vielä
-              suunniteltuja aterioita.
+              There are no meals planned for this day yet.
             </p>
           </div>
         ) : (
           <>
+            {/* Meal cards */}
             <div className="calendar-meal-list">
-
               {selectedMeals.map((meal) => (
                 <div
                   key={meal.id}
-                  className={`calendar - meal - card ${meal.eaten ? "eaten" : ""
-                    } `}
+                  className={`calendar-meal-card ${meal.eaten ? "eaten" : ""
+                    }`}
                 >
-
                   <div className="calendar-meal-icon">
                     {meal.icon}
                   </div>
 
                   <div className="calendar-meal-info">
-
                     <span className="calendar-meal-type">
                       {meal.type}
                     </span>
 
-                    <h3>
-                      {meal.name}
-                    </h3>
+                    <h3>{meal.name}</h3>
 
                     <div className="calendar-meal-meta">
-                      <span>
-                        {meal.calories} kcal
-                      </span>
+                      <span>{meal.calories} kcal</span>
+                      <span>{meal.protein} g protein</span>
+                      <span>{meal.carbs} g carbs</span>
+                      <span>{meal.fat} g fat</span>
                     </div>
-
                   </div>
 
                   <button
-                    className={`calendar - meal - check ${meal.eaten ? "checked" : ""} `}
-                    onClick={() =>
-                      toggleMeal(meal.id)
-                    }
+                    className={`calendar-meal-check ${meal.eaten ? "checked" : ""
+                      }`}
+                    onClick={() => toggleMeal(meal.id)}
                   >
                     {meal.eaten ? "✓" : ""}
                   </button>
-
                 </div>
               ))}
-
             </div>
 
+            {/* Daily total */}
             <div className="calendar-daily-total">
-              <span>
-                Päivän suunnitellut kalorit
-              </span>
+              <span>Planned daily nutrition</span>
 
               <strong>
-                {totalCalories} kcal
+                {totalCalories} kcal · {totalProtein} g protein ·{" "}
+                {totalCarbs} g carbs · {totalFat} g fat
               </strong>
             </div>
           </>
         )}
-
       </section>
-
     </div>
   );
 }
