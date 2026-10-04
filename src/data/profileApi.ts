@@ -13,7 +13,7 @@ function normalizeProfile(data: Partial<ProfileData>): ProfileData {
 
 export async function getProfile(): Promise<ProfileData> {
   try {
-    const response = await axios.post(profileApi, {});
+    const response = await axios.get(profileApi);
     return normalizeProfile(response.data as Partial<ProfileData>);
   } catch (error) {
     throw new Error("Profile loading failed");
