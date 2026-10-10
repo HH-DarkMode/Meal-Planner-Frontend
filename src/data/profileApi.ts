@@ -1,7 +1,7 @@
 import axios from "axios";
 import { emptyProfile, type ProfileData } from "./profile";
 
-const profileApi = "http://localhost:8080/api/profile";
+const profileApi = `${import.meta.env.VITE_BACKEND_URL}/api/profile`;
 
 function normalizeProfile(data: Partial<ProfileData>): ProfileData {
   return {

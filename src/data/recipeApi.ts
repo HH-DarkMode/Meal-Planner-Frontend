@@ -1,7 +1,7 @@
 import type { Meal, RecipeDetails } from "./mealPlan";
 import type { ProfileData } from "./profile";
 
-const recipeApi = "http://localhost:8080/api/recipes";
+const recipeApi = `${import.meta.env.VITE_BACKEND_URL}/api/recipes`;
 
 // Ateria, jonka reseptin tiedot tulevat backendiltä. Meal-tyyppiin lisätään tunniste ja
 // varoitustiedot ruokavaliosopivuudesta.
