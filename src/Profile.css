@@ -77,6 +77,22 @@
   background: #75d591;
 }
 
+/* Omassa sarakkeessaan, jotta viestin ilmestyminen ei siirrä nappia:
+   .profile-header:n space-between näkee aina vain kaksi lasta (intro, save-controls). */
+.save-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.save-message {
+  margin: 0;
+  color: #a9b2ac;
+  font-size: 14px;
+  text-align: right;
+}
+
 
 /* CARDS */
 
@@ -482,8 +498,17 @@ select.field-input {
     grid-template-columns: 1fr;
   }
 
+  .save-controls {
+    width: 100%;
+    align-items: stretch;
+  }
+
   .save-button {
     width: 100%;
+  }
+
+  .save-message {
+    text-align: left;
   }
 }
 

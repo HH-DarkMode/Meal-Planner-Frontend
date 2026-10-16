@@ -2,28 +2,21 @@ import "./Recipes.css";
 import { useEffect, useState } from "react";
 import { weekPlan, type Meal } from "./data/mealPlan";
 import { isProfileComplete, type ProfileData } from "./data/profile";
-import { getDayPlan, type SuggestedMeal } from "./data/recipeApi";
-
-type PlanResult = { key: string; meals: SuggestedMeal[] | null };
+import type { SuggestedMeal } from "./data/recipeApi";
+import { getTodaysSelections, MEAL_TYPES, type MealType } from "./data/mealPlanApi";
 
 function MealPlan({ profile }: { profile: ProfileData | null }) {
-  const [result, setResult] = useState<PlanResult | null>(null);
+  const [selections, setSelections] = useState<Partial<Record<MealType, SuggestedMeal>> | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  const canSuggest = profile !== null && isProfileComplete(profile);
-  // Avain kuvaa, mitä haettiin: uusi haku alkaa, kun profiili muuttuu.
-  const requestKey = canSuggest
-    ? [profile.calories, profile.protein, profile.fat, profile.carbs, profile.diets.join(",")].join("|")
-    : "";
+  const canShow = profile !== null && isProfileComplete(profile);
 
   useEffect(() => {
-    if (!profile || !canSuggest) return;
-    getDayPlan(profile)
-      .then((meals) => setResult({ key: requestKey, meals }))
-      .catch(() => setResult({ key: requestKey, meals: null }));
-  }, [profile, canSuggest, requestKey]);
-
-  // Tulos kuuluu nykyiseen hakuun vain, jos avain täsmää (vanhentuneet vastaukset ohitetaan).
-  const current = result?.key === requestKey ? result : null;
+    if (!canShow) return;
+    getTodaysSelections()
+      .then(setSelections)
+      .catch(() => setLoadFailed(true));
+  }, [canShow]);
 
   return (
   <main className="recipes-page meal-plan-page">
@@ -43,14 +36,23 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
       <p className="recipes-section-subtitle">Meals designed to support your goals today.</p>
       </div>
       </div>
-      {!canSuggest && <p className="recipes-message">Complete and save your profile to see today&apos;s meals.</p>}
-      {canSuggest && !current && <p className="recipes-message">Loading today&apos;s meals...</p>}
-      {current && current.meals === null && <p className="recipes-message">Could not load today&apos;s meals. Is the backend running?</p>}
-      {current?.meals && current.meals.length === 0 && <p className="recipes-message">No meals match your goals and diet.</p>}
-      {current?.meals && current.meals.length > 0 &&
+      {!canShow && <p className="recipes-message">Complete and save your profile to see today&apos;s meals.</p>}
+      {canShow && loadFailed && <p className="recipes-message">Could not load today&apos;s meals. Is the backend running?</p>}
+      {canShow && !loadFailed && !selections && <p className="recipes-message">Loading today&apos;s meals...</p>}
+      {canShow && selections &&
       <div className="today-recipe-grid">
       {
-        current.meals.map((meal) => <MealCard key={meal.recipeId} meal={meal} />)
+        MEAL_TYPES.map((type) => {
+          const meal = selections[type];
+          return meal
+            ? <MealCard key={type} meal={meal} />
+            : <article className="recipe-meal-card" key={type}>
+                <div className="recipe-meal-info">
+                  <span className="recipe-meal-type">{type}</span>
+                  <p className="recipes-message">No {type.toLowerCase()} chosen yet. Pick one on the Recipes page.</p>
+                </div>
+              </article>;
+        })
       }
       </div>
       }
@@ -58,7 +60,7 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
     <section className="recipes-section week-section">
       <div className="recipes-section-heading"><div>
         <p className="recipes-section-label">WEEK</p>
-          <h2>Weekly plan</h2>
+          <h2>Weekly plan <span className="not-implemented-badge">Not yet implemented</span></h2>
         <p className="recipes-section-subtitle">
           Keep the full picture visible and make daily life easier.
         </p>
