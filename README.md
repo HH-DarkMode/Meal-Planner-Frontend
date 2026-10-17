@@ -1,4 +1,4 @@
-# AI Meal Planner – Frontend
+_# AI Meal Planner – Frontend
 
 ## Tärkeimmät ominaisuudet
 
@@ -62,3 +62,6 @@ Teknologiat voivat muuttua projektin edetessä.
 ## Projektin tila
 
 Projekti on tällä hetkellä suunnitteluvaiheessa. Projektin edetessä README-tiedostoa tullaan päivittämään vastaamaan toteutettua sovellusta ja käytettyjä teknologioita.
+
+## Projektin julkaisu linkki
+[AI-Meal-Planner](https://ai-meal-planner-darkmode.onrender.com/)
