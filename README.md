@@ -1,4 +1,4 @@
-_# AI Meal Planner – Frontend
+# AI Meal Planner – Frontend
 
 ## Tärkeimmät ominaisuudet
 
