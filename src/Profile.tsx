@@ -200,11 +200,12 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           </div>
         </div>
 
-        <button className="save-button" onClick={saveProfile} disabled={isLoading || isSaving}>
-          {isSaving ? "Saving..." : "Save changes"}
-        </button>
-
-        {message && <p className="save-message" role="status">{message}</p>}
+        <div className="save-controls">
+          <button className="save-button" onClick={saveProfile} disabled={isLoading || isSaving}>
+            {isSaving ? "Saving..." : "Save changes"}
+          </button>
+          {message && <p className="save-message" role="status">{message}</p>}
+        </div>
 
       </div>
 

@@ -20,6 +20,20 @@
   letter-spacing: 1.3px;
 }
 
+.not-implemented-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 5px 14px;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
 .recipes-eyebrow {
   margin: 30px 0 0;
   color: var(--muted);
@@ -165,6 +179,35 @@
 .recipe-arrow:hover {
   background: var(--green);
   color: #fff;
+}
+
+.recipe-approve-button {
+  display: block;
+  margin-top: 10px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.recipe-approve-button:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.recipe-approve-button:disabled {
+  cursor: default;
+}
+
+.recipe-approve-button.is-added {
+  border-color: var(--green);
+  background: var(--surface-soft);
+  color: var(--green);
 }
 
 .week-section {

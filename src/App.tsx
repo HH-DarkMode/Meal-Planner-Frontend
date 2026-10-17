@@ -37,7 +37,7 @@ function App() {
   return <div className={`app ${theme}`}>
     <Header view={view} navigate={navigate} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={() => setTheme(isDarkTheme ? "light" : "dark")} />
     {view === "home" && <Home navigate={navigate} profile={profile} />}
-    {view === "meal-plan" && <MealPlan />}
+    {view === "meal-plan" && <MealPlan profile={profile} />}
     {view === "recipes" && <Recipes profile={profile} />}
     {view === "calendar" && <Calendar />}
     {view === "about" && <About />}
