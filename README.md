@@ -1,5 +1,7 @@
 # AI Meal Planner – Frontend
 
+[![Frontend CI](https://github.com/HH-DarkMode/Meal-Planner-Frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/HH-DarkMode/Meal-Planner-Frontend/actions/workflows/ci.yml)
+
 ## Tärkeimmät ominaisuudet
 
 Käyttäjä voi esimerkiksi:
