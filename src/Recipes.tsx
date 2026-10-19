@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import "./Recipes.css";
-import type { RecipeDetails as RecipeData } from "./data/mealPlan";
+import RecipeDetails from "./RecipeDetails";
 import { isProfileComplete, type ProfileData } from "./data/profile";
-import { getDayPlan, getRecipeDetails, type SuggestedMeal } from "./data/recipeApi";
+import { getDayPlan, type SuggestedMeal } from "./data/recipeApi";
 import { approveMeal, getTodaysSelections, MEAL_TYPES, mealTypeIcons, type MealType } from "./data/mealPlanApi";
 
 type PlanResult = { key: string; meals: SuggestedMeal[] | null };
@@ -72,7 +72,7 @@ function Recipes({ profile }: { profile: ProfileData | null }) {
       {canSuggest && ready && mealsFailed && <p className="recipes-message">Could not load recipes. Is the backend running?</p>}
       {canSuggest && ready && !mealsFailed && allApproved && <p className="recipes-message">All meals chosen for today! Check your plan on the Meal plan page.</p>}
       {canSuggest && ready && !mealsFailed && !allApproved && noMealsFound && <p className="recipes-message">No recipes match your goals and diet.</p>}
-      {canSuggest && ready && !mealsFailed && !allApproved && !noMealsFound &&
+      {canSuggest && ready && !mealsFailed && !noMealsFound &&
         <div className="today-recipe-grid">
           {cards.map(({ type, meal, alreadyApproved }) => meal
             ? <RecipeCard
@@ -86,7 +86,7 @@ function Recipes({ profile }: { profile: ProfileData | null }) {
         </div>
       }
     </section>
-    {selectedMeal && <RecipeDetails key={selectedMeal.recipeId} meal={selectedMeal} onClose={() => setSelectedMeal(null)} />}
+    {selectedMeal && <RecipeDetails key={selectedMeal.recipeId} meal={selectedMeal} backLabel="Back to recipes" onClose={() => setSelectedMeal(null)} />}
   </main>;
 }
 
@@ -139,39 +139,6 @@ function RecipeCard({ meal, onOpen, alreadyApproved, onApproved }: {
     </div>
     <button className="recipe-arrow" aria-label={`Open recipe: ${meal.name}`} onClick={onOpen}>→</button>
   </article>;
-}
-
-function RecipeDetails({ meal, onClose }: { meal: SuggestedMeal; onClose: () => void }) {
-  const [state, setState] = useState<{ recipeId: number; details: RecipeData | null } | null>(null);
-
-  useEffect(() => {
-    getRecipeDetails(meal.recipeId)
-      .then((details) => setState({ recipeId: meal.recipeId, details }))
-      .catch(() => setState({ recipeId: meal.recipeId, details: null }));
-  }, [meal.recipeId]);
-
-  const loaded = state?.recipeId === meal.recipeId ? state : null;
-
-  return <section className="recipe-details">
-    <button className="recipe-back-button" onClick={onClose}>← Back to recipes</button>
-    <div className="recipe-details-card">
-      <div className="recipe-details-icon">{meal.icon}</div>
-      <div>
-        <span className="recipe-meal-type">{meal.type}</span>
-        <h2>{meal.name}</h2>
-        <p>{meal.time > 0 && `⏱ ${meal.time} min · `}{meal.calories} kcal per serving · <a href={meal.url} target="_blank" rel="noreferrer">Original recipe</a></p>
-        {meal.dietWarning && <p className="recipe-warning">Diet suitability cannot be guaranteed. Unknown ingredients: {meal.unmatchedIngredients.join(", ")}</p>}
-        {!loaded && <p>Loading recipe...</p>}
-        {loaded && !loaded.details && <p>Could not load the recipe.</p>}
-        {loaded?.details && <>
-          <h3>Ingredients</h3>
-          <ul>{loaded.details.ingredients.map((ingredient, index) => <li key={index}>{ingredient}</li>)}</ul>
-          <h3>Instructions</h3>
-          <ol>{loaded.details.instructions.map((step, index) => <li key={index}>{step}</li>)}</ol>
-        </>}
-      </div>
-    </div>
-  </section>;
 }
 
 export default Recipes;

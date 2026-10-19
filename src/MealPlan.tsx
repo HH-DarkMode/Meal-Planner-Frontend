@@ -1,6 +1,7 @@
 import "./Recipes.css";
 import { useEffect, useState } from "react";
-import { weekPlan, type Meal } from "./data/mealPlan";
+import RecipeDetails from "./RecipeDetails";
+import { weekPlan } from "./data/mealPlan";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import type { SuggestedMeal } from "./data/recipeApi";
 import { getTodaysSelections, MEAL_TYPES, type MealType } from "./data/mealPlanApi";
@@ -8,6 +9,7 @@ import { getTodaysSelections, MEAL_TYPES, type MealType } from "./data/mealPlanA
 function MealPlan({ profile }: { profile: ProfileData | null }) {
   const [selections, setSelections] = useState<Partial<Record<MealType, SuggestedMeal>> | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [selectedMeal, setSelectedMeal] = useState<SuggestedMeal | null>(null);
 
   const canShow = profile !== null && isProfileComplete(profile);
 
@@ -45,7 +47,7 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
         MEAL_TYPES.map((type) => {
           const meal = selections[type];
           return meal
-            ? <MealCard key={type} meal={meal} />
+            ? <MealCard key={type} meal={meal} onOpen={() => setSelectedMeal(meal)} />
             : <article className="recipe-meal-card" key={type}>
                 <div className="recipe-meal-info">
                   <span className="recipe-meal-type">{type}</span>
@@ -57,6 +59,7 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
       </div>
       }
     </section>
+    {selectedMeal && <RecipeDetails key={selectedMeal.recipeId} meal={selectedMeal} backLabel="Back to meal plan" onClose={() => setSelectedMeal(null)} />}
     <section className="recipes-section week-section">
       <div className="recipes-section-heading"><div>
         <p className="recipes-section-label">WEEK</p>
@@ -84,8 +87,17 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
   );
 }
 
-function MealCard({ meal }: { meal: Meal }) {
-  return <article className="recipe-meal-card"><div className="recipe-meal-icon">{meal.icon}</div><div className="recipe-meal-info"><span className="recipe-meal-type">{meal.type}</span><h3>{meal.name}</h3><div className="recipe-meal-meta"><span>{meal.calories} kcal</span><span>{meal.protein} g protein</span><span>{meal.carbs} g carbs</span></div><p className="recipe-time">⏱ {meal.time} min</p></div></article>;
+function MealCard({ meal, onOpen }: { meal: SuggestedMeal; onOpen: () => void }) {
+  return <article className="recipe-meal-card">
+    <div className="recipe-meal-icon">{meal.icon}</div>
+    <div className="recipe-meal-info">
+      <span className="recipe-meal-type">{meal.type}</span>
+      <h3>{meal.name}</h3>
+      <div className="recipe-meal-meta"><span>{meal.calories} kcal</span><span>{meal.protein} g protein</span><span>{meal.carbs} g carbs</span></div>
+      {meal.time > 0 && <p className="recipe-time">⏱ {meal.time} min</p>}
+    </div>
+    <button className="recipe-arrow" aria-label={`Open recipe: ${meal.name}`} onClick={onOpen}>→</button>
+  </article>;
 }
 
 export default MealPlan;
