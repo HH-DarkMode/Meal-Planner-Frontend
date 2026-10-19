@@ -3,7 +3,7 @@ import "./Recipes.css";
 import type { RecipeDetails as RecipeData } from "./data/mealPlan";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import { getDayPlan, getRecipeDetails, type SuggestedMeal } from "./data/recipeApi";
-import { approveMeal, getTodaysSelections, MEAL_TYPES, type MealType } from "./data/mealPlanApi";
+import { approveMeal, getTodaysSelections, MEAL_TYPES, mealTypeIcons, type MealType } from "./data/mealPlanApi";
 
 type PlanResult = { key: string; meals: SuggestedMeal[] | null };
 type Selections = Partial<Record<MealType, SuggestedMeal>>;
@@ -45,12 +45,15 @@ function Recipes({ profile }: { profile: ProfileData | null }) {
   const suggestionsByType = new Map((current?.meals ?? []).map((meal) => [meal.type, meal]));
 
   // Jokaiselle ateriatyypille: jo hyväksytty resepti, tai muuten tuore ehdotus.
+  // meal = null, jos ateriatyypille ei löytynyt yhtään tavoitteisiin ja ruokavalioon sopivaa reseptiä.
   const cards = ready
-    ? MEAL_TYPES.flatMap((type) => {
-        const meal = approved?.[type] ?? suggestionsByType.get(type);
-        return meal ? [{ type, meal, alreadyApproved: !!approved?.[type] }] : [];
-      })
+    ? MEAL_TYPES.map((type) => ({
+        type,
+        meal: approved?.[type] ?? suggestionsByType.get(type) ?? null,
+        alreadyApproved: !!approved?.[type],
+      }))
     : [];
+  const noMealsFound = cards.every((card) => card.meal === null);
 
   return <main className="recipes-page">
     <header className="recipes-page-header">
@@ -68,21 +71,36 @@ function Recipes({ profile }: { profile: ProfileData | null }) {
       {canSuggest && !ready && <p className="recipes-message">Loading suggestions...</p>}
       {canSuggest && ready && mealsFailed && <p className="recipes-message">Could not load recipes. Is the backend running?</p>}
       {canSuggest && ready && !mealsFailed && allApproved && <p className="recipes-message">All meals chosen for today! Check your plan on the Meal plan page.</p>}
-      {canSuggest && ready && !mealsFailed && !allApproved && cards.length === 0 && <p className="recipes-message">No recipes match your goals and diet.</p>}
-      {canSuggest && ready && !mealsFailed && !allApproved && cards.length > 0 &&
+      {canSuggest && ready && !mealsFailed && !allApproved && noMealsFound && <p className="recipes-message">No recipes match your goals and diet.</p>}
+      {canSuggest && ready && !mealsFailed && !allApproved && !noMealsFound &&
         <div className="today-recipe-grid">
-          {cards.map(({ type, meal, alreadyApproved }) => <RecipeCard
-            key={meal.recipeId}
-            meal={meal}
-            alreadyApproved={alreadyApproved}
-            onOpen={() => setSelectedMeal(meal)}
-            onApproved={() => setApproved((prev) => ({ ...prev, [type]: meal }))}
-          />)}
+          {cards.map(({ type, meal, alreadyApproved }) => meal
+            ? <RecipeCard
+                key={`${type}-${meal.recipeId}`}
+                meal={meal}
+                alreadyApproved={alreadyApproved}
+                onOpen={() => setSelectedMeal(meal)}
+                onApproved={() => setApproved((prev) => ({ ...prev, [type]: meal }))}
+              />
+            : <EmptyMealCard key={type} type={type} />)}
         </div>
       }
     </section>
     {selectedMeal && <RecipeDetails key={selectedMeal.recipeId} meal={selectedMeal} onClose={() => setSelectedMeal(null)} />}
   </main>;
+}
+
+// Näytetään ateriatyypille, jolle backend ei löytänyt sopivaa reseptiä (esim. vegan + low-carb
+// rajaa aamiaiset niin, ettei yksikään osu kaloritavoitteeseen).
+function EmptyMealCard({ type }: { type: MealType }) {
+  return <article className="recipe-meal-card is-empty">
+    <div className="recipe-meal-icon">{mealTypeIcons[type]}</div>
+    <div className="recipe-meal-info">
+      <span className="recipe-meal-type">{type}</span>
+      <h3>No {type.toLowerCase()} found</h3>
+      <p className="recipe-empty-text">No {type.toLowerCase()} recipe matches your calorie goal and diet. Try changing your goals or diets on the Profile page.</p>
+    </div>
+  </article>;
 }
 
 function RecipeCard({ meal, onOpen, alreadyApproved, onApproved }: {

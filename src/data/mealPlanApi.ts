@@ -5,7 +5,7 @@ const mealPlanApi = `${import.meta.env.VITE_BACKEND_URL}/api/meal-plan`;
 export const MEAL_TYPES = ["Breakfast", "Lunch", "Snack", "Dinner"] as const;
 export type MealType = (typeof MEAL_TYPES)[number];
 
-const mealTypeIcons: Record<MealType, string> = {
+export const mealTypeIcons: Record<MealType, string> = {
   Breakfast: "🥣",
   Lunch: "🥗",
   Snack: "🍎",
