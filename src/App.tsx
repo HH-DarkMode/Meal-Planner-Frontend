@@ -8,6 +8,8 @@ import About from "./About";
 import Profile from "./Profile";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import { getProfile } from "./data/profileApi";
+import { getCurrentUser, logout, type AuthUser } from "./data/authApi";
+import Auth from "./Auth";
 
 type Theme = "light" | "dark";
 type View = "home" | "meal-plan" | "recipes" | "calendar" | "about" | "profile";
@@ -21,6 +23,8 @@ function App() {
   const [view, setView] = useState<View>("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const isDarkTheme = theme === "dark";
   const navigate = (nextView: View) => {
     setView(nextView);
@@ -29,13 +33,35 @@ function App() {
   };
 
   useEffect(() => {
-    getProfile()
-      .then(setProfile)
-      .catch(() => setProfile(null));
+    getCurrentUser()
+      .then((currentUser) => {
+        setUser(currentUser);
+        if (currentUser) return getProfile().then(setProfile).catch(() => setProfile(null));
+        setProfile(null);
+        return undefined;
+      })
+      .catch(() => {
+        setUser(null);
+        setProfile(null);
+      })
+      .finally(() => setAuthLoading(false));
   }, []);
 
+  if (authLoading) return <main className="auth-page"><p>Loading...</p></main>;
+  if (!user) return <Auth onAuthenticated={(authenticatedUser) => {
+    setUser(authenticatedUser);
+    getProfile().then(setProfile).catch(() => setProfile(null));
+  }} />;
+
+  const handleLogout = () => {
+    logout().finally(() => {
+      setUser(null);
+      setProfile(null);
+    });
+  };
+
   return <div className={`app ${theme}`}>
-    <Header view={view} navigate={navigate} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={() => setTheme(isDarkTheme ? "light" : "dark")} />
+    <Header view={view} navigate={navigate} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={() => setTheme(isDarkTheme ? "light" : "dark")} onLogout={handleLogout} username={user.username} />
     {view === "home" && <Home navigate={navigate} profile={profile} />}
     {view === "meal-plan" && <MealPlan profile={profile} />}
     {view === "recipes" && <Recipes profile={profile} />}
@@ -45,7 +71,7 @@ function App() {
   </div>;
 }
 
-function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggleTheme }: Navigation & { view: View; isDarkTheme: boolean; isMenuOpen: boolean; onToggleMenu: () => void; onToggleTheme: () => void }) {
+function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggleTheme, onLogout, username }: Navigation & { view: View; isDarkTheme: boolean; isMenuOpen: boolean; onToggleMenu: () => void; onToggleTheme: () => void; onLogout: () => void; username: string }) {
   const links: { view: View; label: string }[] = [
     { view: "home", label: "Home" },
     { view: "meal-plan", label: "Meal plan" },
@@ -63,7 +89,7 @@ function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggl
     </button>
     <button className="menu-toggle" onClick={onToggleMenu} aria-expanded={isMenuOpen} aria-controls="main-navigation" aria-label={isMenuOpen ? "Close menu" : "Open menu"}><span /><span /><span /></button>
     <nav className={`nav ${isMenuOpen ? "is-open" : ""}`} id="main-navigation" aria-label="Main navigation">{links.map((link) => <button className={`nav-link ${view === link.view ? "active" : ""}`} key={link.view} onClick={() => navigate(link.view)}>{link.label}</button>)}</nav>
-    <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label="Toggle theme">{isDarkTheme ? "☀" : "☾"}<span>{isDarkTheme ? "Light mode" : "Dark mode"}</span></button><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">??</span><span className="profile-name">Profile</span></button></div>
+    <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label="Toggle theme">{isDarkTheme ? "☀" : "☾"}<span>{isDarkTheme ? "Light mode" : "Dark mode"}</span></button><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">{username.slice(0, 1).toUpperCase()}</span><span className="profile-name">{username}</span></button><button className="theme-button" onClick={onLogout}>Sign out</button></div>
   </header>;
 }
 

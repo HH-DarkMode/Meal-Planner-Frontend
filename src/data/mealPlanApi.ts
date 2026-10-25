@@ -15,7 +15,7 @@ export const mealTypeIcons: Record<MealType, string> = {
 // Hakee tämän päivän reseptisivulla hyväksytyt ateriavalinnat. Puuttuva avain
 // tarkoittaa, ettei kyseiselle ateriatyypille ole vielä hyväksytty reseptiä.
 export async function getTodaysSelections(): Promise<Partial<Record<MealType, SuggestedMeal>>> {
-  const response = await fetch(`${mealPlanApi}/selections`);
+  const response = await fetch(`${mealPlanApi}/selections`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Meal plan loading failed");
   }
@@ -34,6 +34,7 @@ export async function getTodaysSelections(): Promise<Partial<Record<MealType, Su
 export async function approveMeal(mealType: string, recipeId: number): Promise<void> {
   const response = await fetch(`${mealPlanApi}/selections`, {
     method: "PUT",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ mealType, recipeId }),
   });

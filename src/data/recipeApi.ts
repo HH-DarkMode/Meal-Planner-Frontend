@@ -68,7 +68,7 @@ export async function getDayPlan(profile: ProfileData): Promise<SuggestedMeal[]>
   if (profile.carbs !== null) params.set("carbs", String(profile.carbs));
   if (profile.diets.length > 0) params.set("diets", profile.diets.join(","));
 
-  const response = await fetch(`${recipeApi}/plan?${params}`);
+  const response = await fetch(`${recipeApi}/plan?${params}`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Recipe loading failed");
   }
@@ -79,7 +79,7 @@ export async function getDayPlan(profile: ProfileData): Promise<SuggestedMeal[]>
 
 // Hakee yhden reseptin ainekset ja valmistusohjeet.
 export async function getRecipeDetails(recipeId: number): Promise<RecipeDetails> {
-  const response = await fetch(`${recipeApi}/${recipeId}`);
+  const response = await fetch(`${recipeApi}/${recipeId}`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Recipe details loading failed");
   }
