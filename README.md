@@ -52,6 +52,16 @@ Frontendin alustavasti suunnitellut teknologiat ovat:
 
 Teknologiat voivat muuttua projektin edetessä.
 
+## Testit
+
+Frontendin Vitest-testit kattavat API-apufunktioita, ja Playwrightin E2E-testi
+varmistaa kirjautumisen sekä profiilin avaamisen selaimessa. Komennot:
+
+```powershell
+npm test
+npm run test:e2e
+```
+
 
 ## Tiimi
 
