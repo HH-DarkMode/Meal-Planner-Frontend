@@ -62,6 +62,9 @@ npm test
 npm run test:e2e
 ```
 
+Molempien testitasojen ajaminen on määritetty myös GitHub Actions
+CI-workflow'hun push- ja pull request -tapahtumille `main`-haaraan.
+
 
 ## Tiimi
 
