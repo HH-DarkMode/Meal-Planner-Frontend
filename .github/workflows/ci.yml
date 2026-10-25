@@ -34,7 +34,9 @@ jobs:
         run: npm run lint
 
       - name: Run all frontend tests with coverage
-        run: npm test -- --coverage --reporter=verbose
+        run: |
+          set -o pipefail
+          npm test -- --coverage --reporter=verbose --reporter=json --outputFile=vitest-results.json 2>&1 | tee vitest-output.txt
 
       - name: Publish frontend test summary
         if: always()
@@ -43,9 +45,25 @@ jobs:
           {
             echo "## Frontend test summary"
             echo
-            echo "Executed command: \`npm test -- --coverage --reporter=verbose\`"
+            if [ -f vitest-results.json ]; then
+              echo "| Metric | Result |"
+              echo "|---|---:|"
+              jq -r '"| Test files | " + (.numPassedTestSuites|tostring) + "/" + (.numTotalTestSuites|tostring) + " passed |"' vitest-results.json
+              jq -r '"| Tests | " + (.numPassedTests|tostring) + "/" + (.numTotalTests|tostring) + " passed |"' vitest-results.json
+              jq -r '"| Failed tests | " + (.numFailedTests|tostring) + " |"' vitest-results.json
+              echo
+              echo "### Executed tests"
+              jq -r '.testResults[] | "- `" + .name + "`: " + ((.assertionResults | length)|tostring) + " tests"' vitest-results.json
+            else
+              echo "Vitest did not produce a JSON report."
+            fi
             echo
-            echo "The full Vitest output is available in the CI log."
+            echo "### Coverage"
+            if [ -f coverage/coverage-summary.json ]; then
+              jq -r '"| Metric | Covered |"| "|---|---:|" "| Statements | " + (.total.statements.pct|tostring) + "% |" "| Branches | " + (.total.branches.pct|tostring) + "% |" "| Functions | " + (.total.functions.pct|tostring) + "% |" "| Lines | " + (.total.lines.pct|tostring) + "% |"' coverage/coverage-summary.json
+            else
+              echo "Coverage summary was not generated."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build frontend
@@ -59,4 +77,6 @@ jobs:
           path: |
             coverage/
             dist/
+            vitest-results.json
+            vitest-output.txt
           if-no-files-found: warn
