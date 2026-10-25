@@ -20,6 +20,20 @@
   letter-spacing: 1.3px;
 }
 
+.not-implemented-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 5px 14px;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
 .recipes-eyebrow {
   margin: 30px 0 0;
   color: var(--muted);
@@ -165,6 +179,35 @@
 .recipe-arrow:hover {
   background: var(--green);
   color: #fff;
+}
+
+.recipe-approve-button {
+  display: block;
+  margin-top: 10px;
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.recipe-approve-button:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.recipe-approve-button:disabled {
+  cursor: default;
+}
+
+.recipe-approve-button.is-added {
+  border-color: var(--green);
+  background: var(--surface-soft);
+  color: var(--green);
 }
 
 .week-section {
@@ -339,8 +382,93 @@
   opacity: 0.8;
 }
 
+.recipes-message + .today-recipe-grid {
+  margin-top: 16px;
+}
+
 .recipe-warning {
   margin: 8px 0 0;
   color: #b7791f;
   font-size: 0.85rem;
+}
+
+/* Ateriatyyppi, jolle ei löytynyt sopivaa reseptiä */
+.recipe-meal-card.is-empty {
+  border-style: dashed;
+  background: transparent;
+}
+
+.recipe-meal-card.is-empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.recipe-empty-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Reseptin avausnäkymä (RecipeDetails), käytössä Recipes- ja Meal plan -sivuilla */
+.recipe-details {
+  margin-top: 40px;
+  scroll-margin-top: 96px;
+}
+
+.recipe-back-button {
+  margin-bottom: 14px;
+  padding: 8px 0;
+  background: none;
+  color: var(--green);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recipe-details-card {
+  display: flex;
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.recipe-details-icon {
+  display: grid;
+  flex: 0 0 64px;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  font-size: 30px;
+}
+
+.recipe-details-card h2 {
+  margin: 6px 0 8px;
+  font-family: Fraunces, Georgia, serif;
+}
+
+.recipe-details-card h3 {
+  margin: 24px 0 10px;
+}
+
+.recipe-details-card p {
+  color: var(--muted);
+}
+
+.recipe-details-card a {
+  color: var(--green);
+}
+
+.recipe-details-card li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .recipe-details-card {
+    flex-direction: column;
+    padding: 20px;
+  }
 }

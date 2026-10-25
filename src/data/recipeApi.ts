@@ -12,7 +12,7 @@ export type SuggestedMeal = Meal & {
   unmatchedIngredients: string[];
 };
 
-type BackendRecipe = {
+export type BackendRecipe = {
   recipeId: number;
   name: string;
   url: string;
@@ -40,7 +40,7 @@ const mealSlots = [
   { key: "dinner", type: "Dinner", icon: "🍝" },
 ] as const;
 
-function toMeal(recipe: BackendRecipe, type: string, icon: string): SuggestedMeal {
+export function toMeal(recipe: BackendRecipe, type: string, icon: string): SuggestedMeal {
   return {
     icon,
     type,

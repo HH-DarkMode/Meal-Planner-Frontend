@@ -16,7 +16,9 @@ export async function getProfile(): Promise<ProfileData> {
     const response = await axios.get(profileApi);
     return normalizeProfile(response.data as Partial<ProfileData>);
   } catch (error) {
-    throw new Error("Profile loading failed");
+    throw new Error("Profile loading failed", {
+      cause: error,
+    });
   }
 }
 
@@ -25,6 +27,8 @@ export async function saveProfile(profile: ProfileData): Promise<ProfileData> {
     const response = await axios.put(profileApi, profile);
     return normalizeProfile(response.data as Partial<ProfileData>);
   } catch (error) {
-    throw new Error("Profile saving failed");
+    throw new Error("Profile saving failed", {
+      cause: error,
+    });
   }
 }
