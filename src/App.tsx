@@ -11,26 +11,48 @@ import { getProfile } from "./data/profileApi";
 import { getCurrentUser, logout, type AuthUser } from "./data/authApi";
 import Auth from "./Auth";
 
-type Theme = "light" | "dark";
+type Theme = "system" | "light" | "dark";
+type ResolvedTheme = Exclude<Theme, "system">;
 type View = "home" | "meal-plan" | "recipes" | "calendar" | "about" | "profile";
 
 type Navigation = {
   navigate: (view: View) => void;
 };
 
+const themeStorageKey = "meal-planner-theme";
+
+function getStoredTheme(): Theme {
+  const storedTheme = window.localStorage.getItem(themeStorageKey);
+  return storedTheme === "light" || storedTheme === "dark" || storedTheme === "system" ? storedTheme : "system";
+}
+
 function App() {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [themePreference, setThemePreference] = useState<Theme>(getStoredTheme);
+  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>("light");
   const [view, setView] = useState<View>("home");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const theme: ResolvedTheme = themePreference === "system" ? systemTheme : themePreference;
   const isDarkTheme = theme === "dark";
   const navigate = (nextView: View) => {
     setView(nextView);
     setIsMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateSystemTheme = () => setSystemTheme(mediaQuery.matches ? "dark" : "light");
+    updateSystemTheme();
+    mediaQuery.addEventListener("change", updateSystemTheme);
+    return () => mediaQuery.removeEventListener("change", updateSystemTheme);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(themeStorageKey, themePreference);
+  }, [themePreference]);
 
   useEffect(() => {
     getCurrentUser()
@@ -60,8 +82,12 @@ function App() {
     });
   };
 
+  const cycleTheme = () => {
+    setThemePreference((currentTheme) => currentTheme === "system" ? "light" : currentTheme === "light" ? "dark" : "system");
+  };
+
   return <div className={`app ${theme}`}>
-    <Header view={view} navigate={navigate} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={() => setTheme(isDarkTheme ? "light" : "dark")} onLogout={handleLogout} username={user.username} />
+    <Header view={view} navigate={navigate} themePreference={themePreference} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={cycleTheme} onLogout={handleLogout} username={user.username} />
     {view === "home" && <Home navigate={navigate} profile={profile} />}
     {view === "meal-plan" && <MealPlan profile={profile} />}
     {view === "recipes" && <Recipes profile={profile} />}
@@ -71,7 +97,7 @@ function App() {
   </div>;
 }
 
-function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggleTheme, onLogout, username }: Navigation & { view: View; isDarkTheme: boolean; isMenuOpen: boolean; onToggleMenu: () => void; onToggleTheme: () => void; onLogout: () => void; username: string }) {
+function Header({ view, navigate, themePreference, isDarkTheme, isMenuOpen, onToggleMenu, onToggleTheme, onLogout, username }: Navigation & { view: View; themePreference: Theme; isDarkTheme: boolean; isMenuOpen: boolean; onToggleMenu: () => void; onToggleTheme: () => void; onLogout: () => void; username: string }) {
   const links: { view: View; label: string }[] = [
     { view: "home", label: "Home" },
     { view: "meal-plan", label: "Meal plan" },
@@ -89,7 +115,7 @@ function Header({ view, navigate, isDarkTheme, isMenuOpen, onToggleMenu, onToggl
     </button>
     <button className="menu-toggle" onClick={onToggleMenu} aria-expanded={isMenuOpen} aria-controls="main-navigation" aria-label={isMenuOpen ? "Close menu" : "Open menu"}><span /><span /><span /></button>
     <nav className={`nav ${isMenuOpen ? "is-open" : ""}`} id="main-navigation" aria-label="Main navigation">{links.map((link) => <button className={`nav-link ${view === link.view ? "active" : ""}`} key={link.view} onClick={() => navigate(link.view)}>{link.label}</button>)}</nav>
-    <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label="Toggle theme">{isDarkTheme ? "☀" : "☾"}<span>{isDarkTheme ? "Light mode" : "Dark mode"}</span></button><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">{username.slice(0, 1).toUpperCase()}</span><span className="profile-name">{username}</span></button><button className="theme-button" onClick={onLogout}>Sign out</button></div>
+    <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label={`Theme: ${themePreference}. Click to change`}>{themePreference === "system" ? "◐" : isDarkTheme ? "☀" : "☾"}<span>{themePreference === "system" ? "System mode" : isDarkTheme ? "Dark mode" : "Light mode"}</span></button><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">{username.slice(0, 1).toUpperCase()}</span><span className="profile-name">{username}</span></button><button className="theme-button" onClick={onLogout}>Sign out</button></div>
   </header>;
 }
 
