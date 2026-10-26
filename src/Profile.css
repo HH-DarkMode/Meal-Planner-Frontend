@@ -1,9 +1,10 @@
 .profile-page {
   min-height: 100vh;
-  background: #101512;
-  color: #f4f3ed;
+  background: var(--bg);
+  color: var(--text);
   padding: 40px 44px;
-  font-family: Arial, sans-serif;
+  font-family: inherit;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 /* HEADER */
@@ -26,7 +27,7 @@
   width: 95px;
   height: 95px;
   border-radius: 50%;
-  background: #68c984;
+  background: var(--green);
 
   display: flex;
   align-items: center;
@@ -39,7 +40,7 @@
 
 .profile-label,
 .card-label {
-  color: #65ce84;
+  color: var(--green);
   font-size: 13px;
   font-weight: bold;
   letter-spacing: 2px;
@@ -55,7 +56,7 @@
 .profile-header p {
   max-width: 650px;
   margin: 0;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 17px;
   line-height: 1.7;
 }
@@ -65,7 +66,7 @@
   border-radius: 11px;
   padding: 17px 25px;
 
-  background: #68c984;
+  background: var(--green);
   color: white;
 
   font-size: 16px;
@@ -74,7 +75,7 @@
 }
 
 .save-button:hover {
-  background: #75d591;
+  background: var(--green-dark);
 }
 
 /* Omassa sarakkeessaan, jotta viestin ilmestyminen ei siirrä nappia:
@@ -88,7 +89,7 @@
 
 .save-message {
   margin: 0;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 14px;
   text-align: right;
 }
@@ -103,8 +104,8 @@
 }
 
 .profile-card {
-  background: #151d18;
-  border: 1px solid #29372e;
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 22px;
   padding: 40px;
   min-height: 400px;
@@ -125,7 +126,7 @@
 }
 
 .card-icon {
-  color: #65ce84;
+  color: var(--green);
   font-size: 23px;
 }
 
@@ -141,19 +142,19 @@
   display: block;
   margin-bottom: 9px;
 
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 14px;
 }
 
 .field-value {
   width: 100%;
   box-sizing: border-box;
-  background: #202c25;
+  background: var(--surface-soft);
   border-radius: 10px;
 
   padding: 17px;
 
-  color: #f3f4ef;
+  color: var(--text);
   font-size: 16px;
   font-weight: bold;
 }
@@ -165,11 +166,11 @@
 
 .field-input:focus {
   outline: none;
-  border-color: #68c984;
+  border-color: var(--green);
 }
 
 .field-input::placeholder {
-  color: #718078;
+  color: var(--muted);
   font-weight: normal;
 }
 
@@ -186,7 +187,7 @@
   top: 50%;
   right: 17px;
   transform: translateY(-50%);
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 14px;
   pointer-events: none;
 }
@@ -217,9 +218,9 @@ select.field-input {
   gap: 10px;
   min-height: 48px;
   padding: 0 13px;
-  border: 1px solid #29372e;
+  border: 1px solid var(--line);
   border-radius: 10px;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, color 0.2s;
@@ -227,27 +228,27 @@ select.field-input {
 
 .goal-option:hover,
 .goal-option.is-selected {
-  border-color: #68c984;
-  background: #202c25;
-  color: #f4f3ed;
+  border-color: var(--green);
+  background: var(--surface-soft);
+  color: var(--text);
 }
 
 .goal-option input {
   width: 16px;
   height: 16px;
-  accent-color: #68c984;
+  accent-color: var(--green);
 }
 
 .selection-detail-box {
   margin: 14px 0 20px;
   padding: 14px 16px;
-  border: 1px solid #29372e;
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: #1a241d;
+  background: var(--surface-soft);
 }
 
 .selection-detail-label {
-  color: #65ce84;
+  color: var(--green);
   font-size: 11px;
   font-weight: bold;
   letter-spacing: 1.5px;
@@ -256,14 +257,14 @@ select.field-input {
 
 .selection-detail-title {
   margin-top: 8px;
-  color: #f3f4ef;
+  color: var(--text);
   font-size: 18px;
   font-weight: bold;
 }
 
 .selection-detail-box p {
   margin: 10px 0 0;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -281,9 +282,9 @@ select.field-input {
   gap: 10px;
   min-height: 48px;
   padding: 0 13px;
-  border: 1px solid #29372e;
+  border: 1px solid var(--line);
   border-radius: 10px;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, color 0.2s;
@@ -291,15 +292,15 @@ select.field-input {
 
 .diet-option:hover,
 .diet-option.is-selected {
-  border-color: #68c984;
-  background: #202c25;
-  color: #f4f3ed;
+  border-color: var(--green);
+  background: var(--surface-soft);
+  color: var(--text);
 }
 
 .diet-option input {
   width: 16px;
   height: 16px;
-  accent-color: #68c984;
+  accent-color: var(--green);
 }
 
 .goal-summary {
@@ -311,12 +312,12 @@ select.field-input {
   justify-content: space-between;
   gap: 14px;
   padding-bottom: 15px;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 14px;
 }
 
 .goal-summary-heading strong {
-  color: #f4f3ed;
+  color: var(--text);
 }
 
 .macro-grid {
@@ -332,7 +333,7 @@ select.field-input {
   align-items: center;
   padding: 13px 8px;
   border-radius: 10px;
-  background: #202c25;
+  background: var(--surface-soft);
   text-align: center;
   border: 1px solid transparent;
   cursor: text;
@@ -342,7 +343,7 @@ select.field-input {
   width: 100%;
   border: none;
   background: transparent;
-  color: #f4f3ed;
+  color: var(--text);
   font-size: 17px;
   font-weight: bold;
   text-align: center;
@@ -357,13 +358,13 @@ select.field-input {
 .macro-box span {
   display: block;
   margin-top: 5px;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 11px;
 }
 
 .estimate-note {
   margin: 14px 0 0;
-  color: #7e8d83;
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -375,9 +376,9 @@ select.field-input {
 .nutrition-editor-panel {
   margin-top: 14px;
   padding: 16px;
-  border: 1px solid #29372e;
+  border: 1px solid var(--line);
   border-radius: 14px;
-  background: #151d18;
+  background: var(--surface);
 }
 
 .nutrition-header {
@@ -394,7 +395,7 @@ select.field-input {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 13px;
 }
 
@@ -403,8 +404,8 @@ select.field-input {
   box-sizing: border-box;
   border: 1px solid transparent;
   border-radius: 10px;
-  background: #202c25;
-  color: #f3f4ef;
+  background: var(--surface-soft);
+  color: var(--text);
   padding: 12px 14px;
   font-size: 15px;
   font-weight: bold;
@@ -412,7 +413,7 @@ select.field-input {
 
 .nutrition-field input:focus {
   outline: none;
-  border-color: #68c984;
+  border-color: var(--green);
 }
 
 .recipe-impact {
@@ -431,16 +432,16 @@ select.field-input {
   align-items: center;
   padding: 8px 12px;
   border-radius: 999px;
-  background: #202c25;
-  border: 1px solid #68c984;
-  color: #f4f3ed;
+  background: var(--surface-soft);
+  border: 1px solid var(--green);
+  color: var(--text);
   font-size: 12px;
   font-weight: 600;
 }
 
 .diet-tag.empty {
-  border-color: #29372e;
-  color: #a9b2ac;
+  border-color: var(--line);
+  color: var(--muted);
 }
 
 .goal-row {
@@ -449,14 +450,14 @@ select.field-input {
   align-items: center;
 
   padding: 18px 0;
-  border-bottom: 1px solid #29372e;
+  border-bottom: 1px solid var(--line);
 
-  color: #a9b2ac;
+  color: var(--muted);
   font-size: 15px;
 }
 
 .goal-row strong {
-  color: #f4f3ed;
+  color: var(--text);
   font-size: 15px;
 }
 
@@ -466,11 +467,11 @@ select.field-input {
 
   padding: 17px;
 
-  border: 1px solid #29372e;
+  border: 1px solid var(--line);
   border-radius: 11px;
 
   background: transparent;
-  color: #f4f3ed;
+  color: var(--text);
 
   font-size: 16px;
   font-weight: bold;
@@ -478,7 +479,7 @@ select.field-input {
 }
 
 .edit-goals-button:hover {
-  background: #202c25;
+  background: var(--surface-soft);
 }
 
 
