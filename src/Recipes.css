@@ -181,6 +181,32 @@
   color: #fff;
 }
 
+/* "Syöty"-täppä aterian kortissa (mealplan-sivu) */
+.eaten-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 44px;
+  padding: 4px 6px;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.eaten-check input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--green);
+  cursor: pointer;
+}
+
+/* Syöty ateria: vihreä reunus kortissa */
+.recipe-meal-card.is-eaten {
+  border-color: var(--green);
+}
+
 .recipe-approve-button {
   display: block;
   margin-top: 10px;
