@@ -1,227 +1,39 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CalendarComponent from "react-calendar";
-import type { Value } from "react-calendar/dist/shared/types.js";
+import type { OnArgs, Value } from "react-calendar/dist/shared/types.js";
+import { calendarGridRange, summarize } from "./data/calendarLogic";
+import { getSelections, MEAL_TYPES, toDateString, type PlanEntry } from "./data/mealPlanApi";
 import "./Calendar.css";
-
-type Meal = {
-  id: number;
-  type: string;
-  name: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  icon: string;
-  eaten: boolean;
-};
-
-type DayMeals = {
-  [date: string]: Meal[];
-};
-
-const initialMeals: DayMeals = {
-  "2026-10-04": [
-    {
-      id: 1,
-      type: "Breakfast",
-      name: "Protein oatmeal",
-      calories: 520,
-      protein: 30,
-      carbs: 55,
-      fat: 15,
-      icon: "🥣",
-      eaten: true,
-    },
-    {
-      id: 2,
-      type: "Lunch",
-      name: "Beef and rice bowl",
-      calories: 680,
-      protein: 42,
-      carbs: 70,
-      fat: 22,
-      icon: "🥩",
-      eaten: false,
-    },
-    {
-      id: 3,
-      type: "Snack",
-      name: "Greek yogurt",
-      calories: 320,
-      protein: 20,
-      carbs: 25,
-      fat: 12,
-      icon: "🥛",
-      eaten: false,
-    },
-    {
-      id: 4,
-      type: "Dinner",
-      name: "Chicken pasta",
-      calories: 620,
-      protein: 40,
-      carbs: 65,
-      fat: 18,
-      icon: "🍝",
-      eaten: false,
-    },
-  ],
-
-  "2026-10-05": [
-    {
-      id: 5,
-      type: "Breakfast",
-      name: "Omelette and whole grain bread",
-      calories: 450,
-      protein: 28,
-      carbs: 35,
-      fat: 20,
-      icon: "🍳",
-      eaten: false,
-    },
-    {
-      id: 6,
-      type: "Lunch",
-      name: "Chicken Caesar salad",
-      calories: 590,
-      protein: 38,
-      carbs: 25,
-      fat: 32,
-      icon: "🥗",
-      eaten: false,
-    },
-    {
-      id: 7,
-      type: "Snack",
-      name: "Banana and quark",
-      calories: 280,
-      protein: 18,
-      carbs: 35,
-      fat: 5,
-      icon: "🍌",
-      eaten: false,
-    },
-    {
-      id: 8,
-      type: "Dinner",
-      name: "Salmon and potatoes",
-      calories: 650,
-      protein: 42,
-      carbs: 45,
-      fat: 28,
-      icon: "🐟",
-      eaten: false,
-    },
-  ],
-
-  "2026-10-06": [
-    {
-      id: 9,
-      type: "Breakfast",
-      name: "Berry smoothie",
-      calories: 380,
-      protein: 22,
-      carbs: 50,
-      fat: 10,
-      icon: "🥤",
-      eaten: false,
-    },
-    {
-      id: 10,
-      type: "Lunch",
-      name: "Chicken and rice",
-      calories: 650,
-      protein: 45,
-      carbs: 70,
-      fat: 16,
-      icon: "🍗",
-      eaten: false,
-    },
-    {
-      id: 11,
-      type: "Snack",
-      name: "Apple and nuts",
-      calories: 300,
-      protein: 7,
-      carbs: 30,
-      fat: 18,
-      icon: "🍎",
-      eaten: false,
-    },
-    {
-      id: 12,
-      type: "Dinner",
-      name: "Vegetable pasta",
-      calories: 560,
-      protein: 20,
-      carbs: 75,
-      fat: 18,
-      icon: "🍝",
-      eaten: false,
-    },
-  ],
-
-  "2026-10-07": [
-    {
-      id: 13,
-      type: "Breakfast",
-      name: "Yogurt and berries",
-      calories: 350,
-      protein: 20,
-      carbs: 35,
-      fat: 12,
-      icon: "🫐",
-      eaten: false,
-    },
-    {
-      id: 14,
-      type: "Lunch",
-      name: "Ground beef and potato casserole",
-      calories: 680,
-      protein: 40,
-      carbs: 55,
-      fat: 30,
-      icon: "🥘",
-      eaten: false,
-    },
-    {
-      id: 15,
-      type: "Snack",
-      name: "Smoothie",
-      calories: 300,
-      protein: 18,
-      carbs: 40,
-      fat: 8,
-      icon: "🥤",
-      eaten: false,
-    },
-    {
-      id: 16,
-      type: "Dinner",
-      name: "Chicken tortillas",
-      calories: 620,
-      protein: 38,
-      carbs: 60,
-      fat: 22,
-      icon: "🌯",
-      eaten: false,
-    },
-  ],
-};
 
 function Calendar() {
   const today = new Date();
 
   const [selectedDate, setSelectedDate] = useState<Date>(today);
-  const [meals, setMeals] = useState<DayMeals>(initialMeals);
+  // Kalenterin näyttämä kuukausi (kuukauden ensimmäinen päivä).
+  const [activeStartDate, setActiveStartDate] = useState<Date>(
+    new Date(today.getFullYear(), today.getMonth(), 1),
+  );
+  // Näkyvän kuukauden ateriat, myös viereisten kuukausien päivät, jotka näkyvät ruudukossa.
+  const [entries, setEntries] = useState<PlanEntry[]>([]);
+  const [loadFailed, setLoadFailed] = useState(false);
 
-  function formatDate(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
-  }
+  // Hakee näkyvän kuukauden ateriat aina, kun käyttäjä vaihtaa kuukautta.
+  useEffect(() => {
+    const { from, to } = calendarGridRange(activeStartDate);
+    let ignore = false; // ohittaa vanhentuneen vastauksen, jos kuukausi ehti vaihtua
+    getSelections(from, to)
+      .then((list) => {
+        if (ignore) return;
+        setEntries(list);
+        setLoadFailed(false);
+      })
+      .catch(() => {
+        if (!ignore) setLoadFailed(true);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [activeStartDate]);
 
   function handleDateChange(value: Value) {
     if (value instanceof Date) {
@@ -229,50 +41,20 @@ function Calendar() {
     }
   }
 
-  function toggleMeal(mealId: number) {
-    setMeals((currentMeals) => {
-      const updatedMeals = { ...currentMeals };
-
-      Object.keys(updatedMeals).forEach((date) => {
-        updatedMeals[date] = updatedMeals[date].map((meal) => {
-          if (meal.id === mealId) {
-            return {
-              ...meal,
-              eaten: !meal.eaten,
-            };
-          }
-
-          return meal;
-        });
-      });
-
-      return updatedMeals;
-    });
+  function handleActiveStartDateChange({ activeStartDate: start }: OnArgs) {
+    if (start) {
+      setActiveStartDate(start);
+    }
   }
 
-  const selectedDateString = formatDate(selectedDate);
+  const selectedDateString = toDateString(selectedDate);
 
-  const selectedMeals = meals[selectedDateString] || [];
+  // Valitun päivän ateriat aamupalasta päivälliseen.
+  const selectedEntries = entries
+    .filter((entry) => entry.date === selectedDateString)
+    .sort((a, b) => MEAL_TYPES.indexOf(a.mealType) - MEAL_TYPES.indexOf(b.mealType));
 
-  const totalCalories = selectedMeals.reduce(
-    (total, meal) => total + meal.calories,
-    0
-  );
-
-  const totalProtein = selectedMeals.reduce(
-    (total, meal) => total + meal.protein,
-    0
-  );
-
-  const totalCarbs = selectedMeals.reduce(
-    (total, meal) => total + meal.carbs,
-    0
-  );
-
-  const totalFat = selectedMeals.reduce(
-    (total, meal) => total + meal.fat,
-    0
-  );
+  const totals = summarize(entries, selectedDateString, selectedDateString).planned;
 
   function getSelectedDateText() {
     return selectedDate.toLocaleDateString("en-US", {
@@ -320,6 +102,9 @@ function Calendar() {
           <CalendarComponent
             onChange={handleDateChange}
             value={selectedDate}
+            activeStartDate={activeStartDate}
+            onActiveStartDateChange={handleActiveStartDateChange}
+            minDetail="month"
             locale="en-US"
             calendarType="iso8601"
           />
@@ -335,7 +120,7 @@ function Calendar() {
             </div>
 
             <h2>
-              {selectedDateString === formatDate(today)
+              {selectedDateString === toDateString(today)
                 ? "Today"
                 : "Daily meals"}
             </h2>
@@ -343,6 +128,12 @@ function Calendar() {
             <p className="calendar-section-subtitle">
               {getSelectedDateText()}
             </p>
+
+            {loadFailed && (
+              <p className="calendar-section-subtitle">
+                Could not load meals. Is the backend running?
+              </p>
+            )}
           </div>
 
           {/* Daily nutrition */}
@@ -350,14 +141,14 @@ function Calendar() {
             <span>DAILY NUTRITION</span>
 
             <strong>
-              {totalCalories} kcal · {totalProtein} g protein ·{" "}
-              {totalCarbs} g carbs · {totalFat} g fat
+              {totals.calories} kcal · {totals.protein} g protein ·{" "}
+              {totals.carbs} g carbs · {totals.fat} g fat
             </strong>
           </div>
         </div>
 
         {/* No meals */}
-        {selectedMeals.length === 0 ? (
+        {selectedEntries.length === 0 ? (
           <div className="no-meals">
             <div className="no-meals-icon">🍽️</div>
 
@@ -371,38 +162,37 @@ function Calendar() {
           <>
             {/* Meal cards */}
             <div className="calendar-meal-list">
-              {selectedMeals.map((meal) => (
+              {selectedEntries.map((entry) => (
                 <div
-                  key={meal.id}
-                  className={`calendar-meal-card ${meal.eaten ? "eaten" : ""
-                    }`}
+                  key={entry.mealType}
+                  className={`calendar-meal-card ${entry.eaten ? "eaten" : ""}`}
                 >
                   <div className="calendar-meal-icon">
-                    {meal.icon}
+                    {entry.meal.icon}
                   </div>
 
                   <div className="calendar-meal-info">
                     <span className="calendar-meal-type">
-                      {meal.type}
+                      {entry.meal.type}
                     </span>
 
-                    <h3>{meal.name}</h3>
+                    <h3>{entry.meal.name}</h3>
 
                     <div className="calendar-meal-meta">
-                      <span>{meal.calories} kcal</span>
-                      <span>{meal.protein} g protein</span>
-                      <span>{meal.carbs} g carbs</span>
-                      <span>{meal.fat} g fat</span>
+                      <span>{entry.meal.calories} kcal</span>
+                      <span>{entry.meal.protein} g protein</span>
+                      <span>{entry.meal.carbs} g carbs</span>
+                      <span>{entry.meal.fat} g fat</span>
                     </div>
                   </div>
 
-                  <button
-                    className={`calendar-meal-check ${meal.eaten ? "checked" : ""
-                      }`}
-                    onClick={() => toggleMeal(meal.id)}
+                  {/* Syöty-tilan merkintä. Täppä tehdään Meal plan -sivulla, pallot tulevat vaiheessa 3. */}
+                  <span
+                    className={`calendar-meal-check ${entry.eaten ? "checked" : ""}`}
+                    aria-label={entry.eaten ? "Eaten" : "Not eaten yet"}
                   >
-                    {meal.eaten ? "✓" : ""}
-                  </button>
+                    {entry.eaten ? "✓" : ""}
+                  </span>
                 </div>
               ))}
             </div>
@@ -412,8 +202,8 @@ function Calendar() {
               <span>Planned daily nutrition</span>
 
               <strong>
-                {totalCalories} kcal · {totalProtein} g protein ·{" "}
-                {totalCarbs} g carbs · {totalFat} g fat
+                {totals.calories} kcal · {totals.protein} g protein ·{" "}
+                {totals.carbs} g carbs · {totals.fat} g fat
               </strong>
             </div>
           </>
