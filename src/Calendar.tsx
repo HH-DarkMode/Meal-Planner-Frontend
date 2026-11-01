@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import CalendarComponent from "react-calendar";
 import type { OnArgs, Value } from "react-calendar/dist/shared/types.js";
-import { calendarGridRange, dayStatuses, mealState, summarize, type MealState } from "./data/calendarLogic";
+import { calendarGridRange, dayStatuses, mealState, monthRange, summarize, weekRange, type Macros, type MealState } from "./data/calendarLogic";
 import { getSelections, MEAL_TYPES, toDateString, type PlanEntry } from "./data/mealPlanApi";
 import "./Calendar.css";
 
@@ -25,6 +25,57 @@ function MealBall({ state }: { state: MealState }) {
   );
 }
 
+// Yhteenvedon jaksot: päivä, viikko tai kuukausi.
+const modes = [
+  { value: "day", label: "Day" },
+  { value: "week", label: "Week" },
+  { value: "month", label: "Month" },
+] as const;
+type SummaryMode = (typeof modes)[number]["value"];
+
+const macroItems = [
+  { label: "Calories", key: "calories", unit: "kcal" },
+  { label: "Protein", key: "protein", unit: "g" },
+  { label: "Carbs", key: "carbs", unit: "g" },
+  { label: "Fat", key: "fat", unit: "g" },
+] as const;
+
+// Muuttaa päivän (YYYY-MM-DD) luettavaksi, esim. "Nov 9".
+function formatShortDate(dateString: string) {
+  return new Date(`${dateString}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// Kuukauden nimi ja vuosi, esim. "November 2026".
+function formatMonth(date: Date) {
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+// Yhteenvedon makrot: isona syödyt (vain eaten = true) ja pienempänä suunniteltu.
+function MacroSummary({ title, subtitle, summary }: {
+  title: string;
+  subtitle?: string;
+  summary: { eaten: Macros; planned: Macros };
+}) {
+  return (
+    <div className="macro-summary">
+      <div className="macro-summary-head">
+        <h3>{title}</h3>
+        {subtitle && <p>{subtitle}</p>}
+      </div>
+
+      <div className="macro-grid">
+        {macroItems.map((item) => (
+          <div className="macro-item" key={item.key}>
+            <span className="macro-label">{item.label}</span>
+            <strong>{summary.eaten[item.key]} {item.unit}</strong>
+            <small>of {summary.planned[item.key]} {item.unit} planned</small>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Calendar() {
   const today = new Date();
 
@@ -36,6 +87,8 @@ function Calendar() {
   // Näkyvän kuukauden ateriat, myös viereisten kuukausien päivät, jotka näkyvät ruudukossa.
   const [entries, setEntries] = useState<PlanEntry[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
+  // Mikä yhteenveto näytetään kalenterin alla.
+  const [mode, setMode] = useState<SummaryMode>("day");
 
   // Hakee näkyvän kuukauden ateriat aina, kun käyttäjä vaihtaa kuukautta.
   useEffect(() => {
@@ -61,9 +114,14 @@ function Calendar() {
     }
   }
 
-  function handleActiveStartDateChange({ activeStartDate: start }: OnArgs) {
-    if (start) {
-      setActiveStartDate(start);
+  function handleActiveStartDateChange({ activeStartDate: start, action }: OnArgs) {
+    if (!start) return;
+    setActiveStartDate(start);
+    // Kun kuukautta vaihdetaan nuolilla, valinta siirretään uuteen kuukauteen (tämä päivä
+    // tai kuukauden 1. päivä). Silloin päivän ja viikon yhteenvedot käyttävät aina haettua dataa.
+    if (action === "prev" || action === "prev2" || action === "next" || action === "next2") {
+      const isCurrentMonth = start.getFullYear() === today.getFullYear() && start.getMonth() === today.getMonth();
+      setSelectedDate(isCurrentMonth ? today : start);
     }
   }
 
@@ -76,7 +134,14 @@ function Calendar() {
   // Päivien taustavärit kuukausinäkymää varten.
   const statusByDate = dayStatuses(entries, todayString);
 
-  const totals = summarize(entries, selectedDateString, selectedDateString).planned;
+  // Yhteenvedot: valittu päivä, valitun päivän viikko (ma–su) ja kuukausi.
+  const week = weekRange(selectedDate);
+  const monthOfSelected = monthRange(selectedDate);
+  const monthOfView = monthRange(activeStartDate);
+  const daySummary = summarize(entries, selectedDateString, selectedDateString);
+  const weekSummary = summarize(entries, week.from, week.to);
+  const monthOfSelectedSummary = summarize(entries, monthOfSelected.from, monthOfSelected.to);
+  const monthOfViewSummary = summarize(entries, monthOfView.from, monthOfView.to);
 
   function getSelectedDateText() {
     return selectedDate.toLocaleDateString("en-US", {
@@ -137,6 +202,50 @@ function Calendar() {
             calendarType="iso8601"
           />
         </div>
+
+        {/* Yhteenvedot: päivä / viikko / kuukausi valinnan mukaan */}
+        <div className="summary-section">
+          <div className="view-switch" role="group" aria-label="Summary period">
+            {modes.map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                className={`view-switch-button${mode === m.value ? " active" : ""}`}
+                aria-pressed={mode === m.value}
+                onClick={() => setMode(m.value)}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          <p className="calendar-section-subtitle">
+            Totals count only meals marked as eaten.
+          </p>
+
+          {mode === "day" && (
+            <MacroSummary title={getSelectedDateText()} summary={daySummary} />
+          )}
+
+          {mode === "week" && (
+            <>
+              <MacroSummary
+                title="Week"
+                subtitle={`${formatShortDate(week.from)} – ${formatShortDate(week.to)}`}
+                summary={weekSummary}
+              />
+              <MacroSummary
+                title={formatMonth(selectedDate)}
+                subtitle="Month of the selected day"
+                summary={monthOfSelectedSummary}
+              />
+            </>
+          )}
+
+          {mode === "month" && (
+            <MacroSummary title={formatMonth(activeStartDate)} summary={monthOfViewSummary} />
+          )}
+        </div>
       </section>
 
       {/* Selected day */}
@@ -162,16 +271,6 @@ function Calendar() {
                 Could not load meals. Is the backend running?
               </p>
             )}
-          </div>
-
-          {/* Daily nutrition */}
-          <div className="calorie-summary">
-            <span>DAILY NUTRITION</span>
-
-            <strong>
-              {totals.calories} kcal · {totals.protein} g protein ·{" "}
-              {totals.carbs} g carbs · {totals.fat} g fat
-            </strong>
           </div>
         </div>
 
@@ -238,16 +337,6 @@ function Calendar() {
                   </div>
                 );
               })}
-            </div>
-
-            {/* Daily total */}
-            <div className="calendar-daily-total">
-              <span>Planned daily nutrition</span>
-
-              <strong>
-                {totals.calories} kcal · {totals.protein} g protein ·{" "}
-                {totals.carbs} g carbs · {totals.fat} g fat
-              </strong>
             </div>
           </>
         )}

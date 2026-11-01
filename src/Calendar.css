@@ -238,6 +238,112 @@
   background: var(--tint-partial);
 }
 
+/* Yhteenvedot: valitsin (päivä / viikko / kuukausi) ja makrot */
+
+.summary-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.view-switch {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.view-switch-button {
+  min-width: 80px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-switch-button:hover {
+  color: var(--green);
+}
+
+.view-switch-button.active {
+  background: var(--green);
+  color: var(--surface);
+}
+
+.macro-summary {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.macro-summary-head h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.macro-summary-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.macro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.macro-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.macro-item strong {
+  color: var(--green);
+  font-size: 20px;
+}
+
+.macro-item small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 700px) {
+  .macro-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .view-switch {
+    align-self: stretch;
+  }
+
+  .view-switch-button {
+    flex: 1;
+  }
+}
+
 /* Valitun päivän ateriat */
 
 .selected-day-section {

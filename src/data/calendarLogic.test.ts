@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calendarGridRange, dayStatus, dayStatuses, mealState, summarize } from "./calendarLogic";
+import { calendarGridRange, dayStatus, dayStatuses, mealState, monthRange, summarize, weekRange } from "./calendarLogic";
 import type { PlanEntry } from "./mealPlanApi";
 
 // Apumetodi: tekee ateriarivin testejä varten.
@@ -101,5 +101,27 @@ describe("dayStatuses", () => {
     expect(result.get("2026-11-11")).toBe("complete");
     // päivä, jolla ei ole aterioita, ei ole mukana
     expect(result.get("2026-11-12")).toBeUndefined();
+  });
+});
+
+describe("weekRange", () => {
+  it("runs from Monday to Sunday", () => {
+    // 4.11.2026 on keskiviikko
+    expect(weekRange(new Date(2026, 10, 4))).toEqual({ from: "2026-11-02", to: "2026-11-08" });
+  });
+
+  it("treats Sunday as the last day of the week and can cross a month boundary", () => {
+    // 1.11.2026 on sunnuntai, viikko alkaa edellisen kuukauden puolella
+    expect(weekRange(new Date(2026, 10, 1))).toEqual({ from: "2026-10-26", to: "2026-11-01" });
+  });
+});
+
+describe("monthRange", () => {
+  it("covers the whole month", () => {
+    expect(monthRange(new Date(2026, 10, 15))).toEqual({ from: "2026-11-01", to: "2026-11-30" });
+  });
+
+  it("handles a leap year February", () => {
+    expect(monthRange(new Date(2028, 1, 10))).toEqual({ from: "2028-02-01", to: "2028-02-29" });
   });
 });

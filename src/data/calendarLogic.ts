@@ -77,3 +77,18 @@ export function dayStatuses(entries: PlanEntry[], today: string): Map<string, Da
   }
   return result;
 }
+
+// Viikon alku ja loppu (maanantai–sunnuntai) annetun päivän ympäriltä, muodossa YYYY-MM-DD.
+export function weekRange(date: Date): { from: string; to: string } {
+  const daysFromMonday = (date.getDay() + 6) % 7;
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate() - daysFromMonday);
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+  return { from: toDateString(start), to: toDateString(end) };
+}
+
+// Kuukauden ensimmäinen ja viimeinen päivä annetun päivän kuukaudesta, muodossa YYYY-MM-DD.
+export function monthRange(date: Date): { from: string; to: string } {
+  const first = new Date(date.getFullYear(), date.getMonth(), 1);
+  const last = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  return { from: toDateString(first), to: toDateString(last) };
+}
