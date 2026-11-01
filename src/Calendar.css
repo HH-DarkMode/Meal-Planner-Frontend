@@ -238,6 +238,80 @@
   background: var(--tint-partial);
 }
 
+/* Selite: pallojen ja värien selitykset */
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 72px;
+  /* Sama sisennys kuin kalenterikortin sisällä, jolloin selite on linjassa kalenterin kanssa */
+  padding: 0 24px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.legend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.legend-title {
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.legend-group ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend-group li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-group .meal-ball {
+  margin-right: 0;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+.legend-swatch-complete {
+  background: var(--tint-complete);
+}
+
+.legend-swatch-partial {
+  background: var(--tint-partial);
+}
+
+.legend-ring,
+.legend-filled {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--green);
+  border-radius: 50%;
+}
+
+.legend-filled {
+  background: var(--green);
+}
+
 /* Yhteenvedot: valitsin (päivä / viikko / kuukausi) ja makrot */
 
 .summary-section {
@@ -607,5 +681,23 @@
 
   .calendar-card .react-calendar__navigation__label {
     font-size: 18px;
+  }
+}
+
+/* Kalenterikortin sisennys on puhelimella pienempi, joten selite seuraa sitä */
+@media (max-width: 700px) {
+  .calendar-legend {
+    padding: 0 15px;
+  }
+}
+
+@media (max-width: 420px) {
+  .calendar-card .react-calendar__tile abbr {
+    width: 28px;
+    height: 28px;
+  }
+
+  .calendar-legend {
+    flex-direction: column;
   }
 }

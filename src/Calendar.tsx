@@ -25,6 +25,38 @@ function MealBall({ state }: { state: MealState }) {
   );
 }
 
+const legendStates = ["none", "planned", "eaten", "missed"] as const;
+
+// Selite kalenterin alla: mitä pallot ja värit tarkoittavat.
+function CalendarLegend() {
+  return (
+    <div className="calendar-legend">
+      <div className="legend-group">
+        <span className="legend-title">Meals</span>
+        <ul>
+          {legendStates.map((state) => (
+            <li key={state}>
+              <MealBall state={state} />
+              {ballLabels[state]}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="legend-group">
+        <span className="legend-title">Calendar days</span>
+        <ul>
+          <li><span className="legend-ring" />Today</li>
+          <li><span className="legend-filled" />Selected</li>
+          <li><span className="legend-swatch legend-swatch-complete" />All planned meals eaten</li>
+          <li><span className="legend-swatch legend-swatch-partial" />Some meals eaten</li>
+        </ul>
+        <small>Day colours appear once the day is over.</small>
+      </div>
+    </div>
+  );
+}
+
 // Yhteenvedon jaksot: päivä, viikko tai kuukausi.
 const modes = [
   { value: "day", label: "Day" },
@@ -134,13 +166,11 @@ function Calendar() {
   // Päivien taustavärit kuukausinäkymää varten.
   const statusByDate = dayStatuses(entries, todayString);
 
-  // Yhteenvedot: valittu päivä, valitun päivän viikko (ma–su) ja kuukausi.
+  // Yhteenvedot: valittu päivä, valitun päivän viikko (ma–su) ja näkyvä kuukausi.
   const week = weekRange(selectedDate);
-  const monthOfSelected = monthRange(selectedDate);
   const monthOfView = monthRange(activeStartDate);
   const daySummary = summarize(entries, selectedDateString, selectedDateString);
   const weekSummary = summarize(entries, week.from, week.to);
-  const monthOfSelectedSummary = summarize(entries, monthOfSelected.from, monthOfSelected.to);
   const monthOfViewSummary = summarize(entries, monthOfView.from, monthOfView.to);
 
   function getSelectedDateText() {
@@ -203,6 +233,8 @@ function Calendar() {
           />
         </div>
 
+        <CalendarLegend />
+
         {/* Yhteenvedot: päivä / viikko / kuukausi valinnan mukaan */}
         <div className="summary-section">
           <div className="view-switch" role="group" aria-label="Summary period">
@@ -228,18 +260,11 @@ function Calendar() {
           )}
 
           {mode === "week" && (
-            <>
-              <MacroSummary
-                title="Week"
-                subtitle={`${formatShortDate(week.from)} – ${formatShortDate(week.to)}`}
-                summary={weekSummary}
-              />
-              <MacroSummary
-                title={formatMonth(selectedDate)}
-                subtitle="Month of the selected day"
-                summary={monthOfSelectedSummary}
-              />
-            </>
+            <MacroSummary
+              title="Week"
+              subtitle={`${formatShortDate(week.from)} – ${formatShortDate(week.to)}`}
+              summary={weekSummary}
+            />
           )}
 
           {mode === "month" && (
