@@ -63,3 +63,17 @@ export function calendarGridRange(monthStart: Date): { from: string; to: string 
   end.setDate(last.getDate() + (6 - ((last.getDay() + 6) % 7)));
   return { from: toDateString(start), to: toDateString(end) };
 }
+
+// Jokaisen päivän tila taustavärille. Avaimena päivä (YYYY-MM-DD).
+// Päiviä, joilla ei ole yhtään valittua ateriaa, ei ole mukana.
+export function dayStatuses(entries: PlanEntry[], today: string): Map<string, DayStatus> {
+  const byDate = new Map<string, PlanEntry[]>();
+  for (const entry of entries) {
+    byDate.set(entry.date, [...(byDate.get(entry.date) ?? []), entry]);
+  }
+  const result = new Map<string, DayStatus>();
+  for (const [date, list] of byDate) {
+    result.set(date, dayStatus(list, date, today));
+  }
+  return result;
+}

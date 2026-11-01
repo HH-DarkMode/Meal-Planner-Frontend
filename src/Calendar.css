@@ -94,6 +94,20 @@
   box-shadow: var(--shadow);
 }
 
+/* Kalenterin värit: pallot ja päivän taustavärit (vaalea ja tumma teema) */
+
+.calendar-page {
+  --tint-complete: rgba(35, 134, 83, 0.18);
+  --tint-partial: rgba(224, 168, 30, 0.24);
+  --ball-missed: #d64545;
+}
+
+.app.dark .calendar-page {
+  --tint-complete: rgba(95, 206, 141, 0.2);
+  --tint-partial: rgba(232, 190, 70, 0.22);
+  --ball-missed: #ef7a6c;
+}
+
 /* React Calendar */
 
 .calendar-card .react-calendar {
@@ -181,26 +195,47 @@
   opacity: 0.45;
 }
 
-/* Tämän päivän reunus */
+/* Päivämäärän numero: tämä päivä = rengas, valittu päivä = täytetty ympyrä */
+
+.calendar-card .react-calendar__tile abbr {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+}
+
+/* Tämä päivä: rengas numeron ympärillä (ei koko ruudun reunusta) */
 
 .calendar-card .react-calendar__tile--now {
-  border: 1px solid var(--green);
-  background: transparent;
-  color: var(--green);
   font-weight: 700;
 }
 
-/* Valittu päivä */
+.calendar-card .react-calendar__tile--now abbr {
+  border-color: var(--green);
+}
+
+/* Valittu päivä: täytetty ympyrä numeron ympärillä */
 
 .calendar-card .react-calendar__tile--active {
-  background: var(--green) !important;
-  color: white !important;
   font-weight: 700;
 }
 
-.calendar-card .react-calendar__tile--active:hover {
-  background: var(--green) !important;
-  color: white !important;
+.calendar-card .react-calendar__tile--active abbr {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--surface);
+}
+
+/* Päivän taustaväri, kun päivä on ohi: kaikki syöty / osa syöty */
+
+.calendar-card .react-calendar__tile.day-complete {
+  background: var(--tint-complete);
+}
+
+.calendar-card .react-calendar__tile.day-partial {
+  background: var(--tint-partial);
 }
 
 /* Valitun päivän ateriat */
@@ -307,32 +342,53 @@
   font-size: 11px;
 }
 
-/* Syöty-painike */
+/* Aterian tilapallo */
 
-.calendar-meal-check {
-  display: grid;
+.meal-ball {
+  display: inline-grid;
   place-items: center;
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--line);
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  border: 2px solid transparent;
   border-radius: 50%;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  font-size: 16px;
+  color: var(--surface);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
 }
 
-.calendar-meal-check:hover {
-  background: var(--green);
-  border-color: var(--green);
-  color: white;
+.meal-ball-none {
+  border-color: var(--muted);
+  opacity: 0.5;
 }
 
-.calendar-meal-check.checked {
-  background: var(--green);
+.meal-ball-planned {
+  border-color: var(--text);
+}
+
+.meal-ball-eaten {
   border-color: var(--green);
-  color: white;
+  background: var(--green);
+}
+
+.meal-ball-missed {
+  border-color: var(--ball-missed);
+  background: var(--ball-missed);
+}
+
+/* Ateriapaikka, jolle ei ole valittu reseptiä */
+
+.calendar-meal-card.is-empty:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.calendar-meal-empty {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 /* Päivän kokonaiskalorit */

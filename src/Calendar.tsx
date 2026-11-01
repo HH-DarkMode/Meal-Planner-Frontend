@@ -1,9 +1,29 @@
 import { useEffect, useState } from "react";
 import CalendarComponent from "react-calendar";
 import type { OnArgs, Value } from "react-calendar/dist/shared/types.js";
-import { calendarGridRange, summarize } from "./data/calendarLogic";
+import { calendarGridRange, dayStatuses, mealState, summarize, type MealState } from "./data/calendarLogic";
 import { getSelections, MEAL_TYPES, toDateString, type PlanEntry } from "./data/mealPlanApi";
 import "./Calendar.css";
+
+// Pallon selite ruudunlukijalle ja merkki pallon sisällä. Merkki auttaa erottamaan tilat
+// myös silloin, kun värejä ei erota (punainen ja vihreä).
+const ballLabels: Record<MealState, string> = {
+  none: "Not planned",
+  planned: "Planned",
+  eaten: "Eaten",
+  missed: "Not eaten",
+};
+const ballSymbols: Record<MealState, string> = { none: "", planned: "", eaten: "✓", missed: "!" };
+
+// Aterian tilaa kuvaava pallo: harmaa = ei valittu, ääriviiva = suunniteltu,
+// vihreä = syöty, punainen = päivä ohi eikä syöty.
+function MealBall({ state }: { state: MealState }) {
+  return (
+    <span className={`meal-ball meal-ball-${state}`} role="img" aria-label={ballLabels[state]}>
+      {ballSymbols[state]}
+    </span>
+  );
+}
 
 function Calendar() {
   const today = new Date();
@@ -47,12 +67,14 @@ function Calendar() {
     }
   }
 
+  const todayString = toDateString(today);
   const selectedDateString = toDateString(selectedDate);
 
-  // Valitun päivän ateriat aamupalasta päivälliseen.
-  const selectedEntries = entries
-    .filter((entry) => entry.date === selectedDateString)
-    .sort((a, b) => MEAL_TYPES.indexOf(a.mealType) - MEAL_TYPES.indexOf(b.mealType));
+  // Valitun päivän ateriat. Järjestys tulee MEAL_TYPES-listasta, kun paikat piirretään.
+  const selectedEntries = entries.filter((entry) => entry.date === selectedDateString);
+
+  // Päivien taustavärit kuukausinäkymää varten.
+  const statusByDate = dayStatuses(entries, todayString);
 
   const totals = summarize(entries, selectedDateString, selectedDateString).planned;
 
@@ -105,6 +127,12 @@ function Calendar() {
             activeStartDate={activeStartDate}
             onActiveStartDateChange={handleActiveStartDateChange}
             minDetail="month"
+            // Antaa päivälle taustavärin luokan (day-complete / day-partial), kun päivä on ohi.
+            tileClassName={({ date, view }) => {
+              if (view !== "month") return null;
+              const status = statusByDate.get(toDateString(date));
+              return status && status !== "none" ? `day-${status}` : null;
+            }}
             locale="en-US"
             calendarType="iso8601"
           />
@@ -120,7 +148,7 @@ function Calendar() {
             </div>
 
             <h2>
-              {selectedDateString === toDateString(today)
+              {selectedDateString === todayString
                 ? "Today"
                 : "Daily meals"}
             </h2>
@@ -160,41 +188,56 @@ function Calendar() {
           </div>
         ) : (
           <>
-            {/* Meal cards */}
+            {/* Meal cards: jokainen ateriapaikka näkyy, myös valitsematon (harmaa pallo) */}
             <div className="calendar-meal-list">
-              {selectedEntries.map((entry) => (
-                <div
-                  key={entry.mealType}
-                  className={`calendar-meal-card ${entry.eaten ? "eaten" : ""}`}
-                >
-                  <div className="calendar-meal-icon">
-                    {entry.meal.icon}
-                  </div>
+              {MEAL_TYPES.map((type) => {
+                const entry = selectedEntries.find((e) => e.mealType === type);
+                const state = mealState(entry, selectedDateString, todayString);
 
-                  <div className="calendar-meal-info">
-                    <span className="calendar-meal-type">
-                      {entry.meal.type}
-                    </span>
+                if (!entry) {
+                  return (
+                    <div key={type} className="calendar-meal-card is-empty">
+                      <div className="calendar-meal-info">
+                        <span className="calendar-meal-type">
+                          <MealBall state={state} />
+                          {type}
+                        </span>
 
-                    <h3>{entry.meal.name}</h3>
+                        <p className="calendar-meal-empty">
+                          No {type.toLowerCase()} chosen.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                }
 
-                    <div className="calendar-meal-meta">
-                      <span>{entry.meal.calories} kcal</span>
-                      <span>{entry.meal.protein} g protein</span>
-                      <span>{entry.meal.carbs} g carbs</span>
-                      <span>{entry.meal.fat} g fat</span>
+                return (
+                  <div
+                    key={type}
+                    className={`calendar-meal-card ${entry.eaten ? "eaten" : ""}`}
+                  >
+                    <div className="calendar-meal-icon">
+                      {entry.meal.icon}
+                    </div>
+
+                    <div className="calendar-meal-info">
+                      <span className="calendar-meal-type">
+                        <MealBall state={state} />
+                        {entry.meal.type}
+                      </span>
+
+                      <h3>{entry.meal.name}</h3>
+
+                      <div className="calendar-meal-meta">
+                        <span>{entry.meal.calories} kcal</span>
+                        <span>{entry.meal.protein} g protein</span>
+                        <span>{entry.meal.carbs} g carbs</span>
+                        <span>{entry.meal.fat} g fat</span>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Syöty-tilan merkintä. Täppä tehdään Meal plan -sivulla, pallot tulevat vaiheessa 3. */}
-                  <span
-                    className={`calendar-meal-check ${entry.eaten ? "checked" : ""}`}
-                    aria-label={entry.eaten ? "Eaten" : "Not eaten yet"}
-                  >
-                    {entry.eaten ? "✓" : ""}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Daily total */}

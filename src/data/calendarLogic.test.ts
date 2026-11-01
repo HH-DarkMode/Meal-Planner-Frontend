@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calendarGridRange, dayStatus, mealState, summarize } from "./calendarLogic";
+import { calendarGridRange, dayStatus, dayStatuses, mealState, summarize } from "./calendarLogic";
 import type { PlanEntry } from "./mealPlanApi";
 
 // Apumetodi: tekee ateriarivin testejä varten.
@@ -88,5 +88,18 @@ describe("calendarGridRange", () => {
   it("matches the month exactly when it starts on Monday and ends on Sunday", () => {
     // 1.2.2027 on maanantai ja 28.2.2027 sunnuntai
     expect(calendarGridRange(new Date(2027, 1, 1))).toEqual({ from: "2027-02-01", to: "2027-02-28" });
+  });
+});
+
+describe("dayStatuses", () => {
+  it("gives each day with meals its own status", () => {
+    const result = dayStatuses(
+      [entry("2026-11-10", true, 100), entry("2026-11-10", false, 100), entry("2026-11-11", true, 100)],
+      "2026-11-12",
+    );
+    expect(result.get("2026-11-10")).toBe("partial");
+    expect(result.get("2026-11-11")).toBe("complete");
+    // päivä, jolla ei ole aterioita, ei ole mukana
+    expect(result.get("2026-11-12")).toBeUndefined();
   });
 });
