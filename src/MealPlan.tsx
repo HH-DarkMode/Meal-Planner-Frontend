@@ -4,21 +4,49 @@ import RecipeDetails from "./RecipeDetails";
 import { weekPlan } from "./data/mealPlan";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import type { SuggestedMeal } from "./data/recipeApi";
-import { getTodaysSelections, MEAL_TYPES, type MealType } from "./data/mealPlanApi";
+import { getSelections, MEAL_TYPES, setEaten, toDateString, type MealType, type PlanEntry } from "./data/mealPlanApi";
 
 function MealPlan({ profile }: { profile: ProfileData | null }) {
-  const [selections, setSelections] = useState<Partial<Record<MealType, SuggestedMeal>> | null>(null);
+  // Tämän päivän ateriat ateriatyypin mukaan. null = vielä latautumassa.
+  const [entries, setEntries] = useState<Partial<Record<MealType, PlanEntry>> | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState<SuggestedMeal | null>(null);
 
   const canShow = profile !== null && isProfileComplete(profile);
 
   useEffect(() => {
     if (!canShow) return;
-    getTodaysSelections()
-      .then(setSelections)
+    const today = toDateString(new Date());
+    getSelections(today, today)
+      .then((list) => {
+        const byType: Partial<Record<MealType, PlanEntry>> = {};
+        for (const entry of list) byType[entry.mealType] = entry;
+        setEntries(byType);
+      })
       .catch(() => setLoadFailed(true));
   }, [canShow]);
+
+  // Päivittää aterian syöty-tilan näkymään.
+  function updateEaten(type: MealType, eaten: boolean) {
+    setEntries((current) => {
+      const entry = current?.[type];
+      return current && entry ? { ...current, [type]: { ...entry, eaten } } : current;
+    });
+  }
+
+  // Täppä: näkymä päivittyy heti, ja jos tallennus epäonnistuu, muutos perutaan.
+  function toggleEaten(type: MealType) {
+    const entry = entries?.[type];
+    if (!entry) return;
+    const eaten = !entry.eaten;
+    setSaveFailed(false);
+    updateEaten(type, eaten);
+    setEaten(entry.date, type, eaten).catch(() => {
+      updateEaten(type, !eaten);
+      setSaveFailed(true);
+    });
+  }
 
   return (
   <main className="recipes-page meal-plan-page">
@@ -40,14 +68,21 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
       </div>
       {!canShow && <p className="recipes-message">Complete and save your profile to see today&apos;s meals.</p>}
       {canShow && loadFailed && <p className="recipes-message">Could not load today&apos;s meals. Is the backend running?</p>}
-      {canShow && !loadFailed && !selections && <p className="recipes-message">Loading today&apos;s meals...</p>}
-      {canShow && selections &&
+      {canShow && saveFailed && <p className="recipes-message">Could not save the change. Try again.</p>}
+      {canShow && !loadFailed && !entries && <p className="recipes-message">Loading today&apos;s meals...</p>}
+      {canShow && entries &&
       <div className="today-recipe-grid">
       {
         MEAL_TYPES.map((type) => {
-          const meal = selections[type];
-          return meal
-            ? <MealCard key={type} meal={meal} onOpen={() => setSelectedMeal(meal)} />
+          const entry = entries[type];
+          return entry
+            ? <MealCard
+                key={type}
+                meal={entry.meal}
+                eaten={entry.eaten}
+                onToggleEaten={() => toggleEaten(type)}
+                onOpen={() => setSelectedMeal(entry.meal)}
+              />
             : <article className="recipe-meal-card" key={type}>
                 <div className="recipe-meal-info">
                   <span className="recipe-meal-type">{type}</span>
@@ -87,8 +122,13 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
   );
 }
 
-function MealCard({ meal, onOpen }: { meal: SuggestedMeal; onOpen: () => void }) {
-  return <article className="recipe-meal-card">
+function MealCard({ meal, eaten, onToggleEaten, onOpen }: {
+  meal: SuggestedMeal;
+  eaten: boolean;
+  onToggleEaten: () => void;
+  onOpen: () => void;
+}) {
+  return <article className={`recipe-meal-card${eaten ? " is-eaten" : ""}`}>
     <div className="recipe-meal-icon">{meal.icon}</div>
     <div className="recipe-meal-info">
       <span className="recipe-meal-type">{meal.type}</span>
@@ -96,6 +136,11 @@ function MealCard({ meal, onOpen }: { meal: SuggestedMeal; onOpen: () => void })
       <div className="recipe-meal-meta"><span>{meal.calories} kcal</span><span>{meal.protein} g protein</span><span>{meal.carbs} g carbs</span></div>
       {meal.time > 0 && <p className="recipe-time">⏱ {meal.time} min</p>}
     </div>
+    {/* "Syöty"-täppä: merkitään, kun ateria on oikeasti syöty. Vaikuttaa kalenterin väreihin ja yhteenvetoihin. */}
+    <label className="eaten-check">
+      <input type="checkbox" checked={eaten} onChange={onToggleEaten} aria-label={`Mark ${meal.name} as eaten`} />
+      <span>Eaten</span>
+    </label>
     <button className="recipe-arrow" aria-label={`Open recipe: ${meal.name}`} onClick={onOpen}>→</button>
   </article>;
 }
