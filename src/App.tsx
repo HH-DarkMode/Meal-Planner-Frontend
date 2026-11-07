@@ -90,7 +90,7 @@ function App() {
     <Header view={view} navigate={navigate} themePreference={themePreference} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={cycleTheme} onLogout={handleLogout} username={user.username} />
     {view === "home" && <Home navigate={navigate} profile={profile} />}
     {view === "meal-plan" && <MealPlan profile={profile} />}
-    {view === "recipes" && <Recipes profile={profile} />}
+    {view === "recipes" && <Recipes onOpenMealPlan={() => navigate("meal-plan")} />}
     {view === "calendar" && <Calendar />}
     {view === "about" && <About />}
     {view === "profile" && <Profile profile={profile} onProfileSaved={setProfile} />}
@@ -101,7 +101,7 @@ function Header({ view, navigate, themePreference, isDarkTheme, isMenuOpen, onTo
   const links: { view: View; label: string }[] = [
     { view: "home", label: "Home" },
     { view: "meal-plan", label: "Meal plan" },
-    { view: "recipes", label: "Recipes" },
+    { view: "recipes", label: "My recipes" },
     { view: "calendar", label: "Calendar" },
     { view: "about", label: "About us" },
   ];
@@ -123,7 +123,7 @@ function Home({ navigate, profile }: Navigation & { profile: ProfileData | null 
   const hasProfile = isProfileComplete(profile);
   return <main className="page-shell">
     <section className="hero"><div className="hero-content"><span className="badge">✦ AI MEAL PLANNER</span><p className="eyebrow">Welcome to smarter planning</p><h1>Eat well.<br /><span>Feel better.</span></h1><p className="hero-description">Plan meals that fit your routine, track your nutrition, and make healthy choices easier every day.</p><div className="hero-buttons"><button className="primary-button" onClick={() => navigate("meal-plan")}>✦ Open meal plan</button><button className="secondary-button" onClick={() => navigate("profile")}>{hasProfile ? "Edit profile" : "Complete profile"}</button></div><div className="hero-note"><span className="status-dot" /> {hasProfile ? "Your goals are active" : "Start by completing your profile"}</div></div><NutritionCard profile={profile} /></section>
-    <section className="content-section"><div className="section-heading"><div><p className="section-label">QUICK LINKS</p><h2>Everything important in one place</h2><p className="section-subtitle">Open today&apos;s meals, discover a new recipe, or update your goals.</p></div></div><div className="hero-buttons"><button className="secondary-button" onClick={() => navigate("meal-plan")}>Meal plan</button><button className="secondary-button" onClick={() => navigate("recipes")}>Recipes</button><button className="secondary-button" onClick={() => navigate("profile")}>Profile</button></div></section>
+    <section className="content-section"><div className="section-heading"><div><p className="section-label">QUICK LINKS</p><h2>Everything important in one place</h2><p className="section-subtitle">Open today&apos;s meals, plan your week, or update your goals.</p></div></div><div className="hero-buttons"><button className="secondary-button" onClick={() => navigate("meal-plan")}>Meal plan</button><button className="secondary-button" onClick={() => navigate("recipes")}>My recipes</button><button className="secondary-button" onClick={() => navigate("profile")}>Profile</button></div></section>
   </main>;
 }
 

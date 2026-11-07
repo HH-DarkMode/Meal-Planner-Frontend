@@ -10,11 +10,6 @@ export const ALL_MEAL_TYPES = [
 ] as const;
 export type MealType = (typeof ALL_MEAL_TYPES)[number];
 
-// VANHA: Recipes-sivun 4 ateriaa (ja kalenteri vaiheeseen 7 asti).
-// Poistetaan vaiheessa 8, kun Recipes-sivusta tulee "coming soon".
-// satisfies: TypeScript tarkistaa, että nämä ovat sallittuja ateriannimiä.
-export const MEAL_TYPES = ["Breakfast", "Lunch", "Snack", "Dinner"] as const satisfies readonly MealType[];
-
 export const mealTypeIcons: Record<MealType, string> = {
   Breakfast: "🥣",
   "Morning snack": "🍌",
@@ -40,37 +35,6 @@ export function mealTypeLabel(type: MealType, dayMealTypes: readonly MealType[])
   if (type !== "Snack") return type;
   const snackCount = dayMealTypes.filter((t) => SNACK_TYPES.includes(t)).length;
   return snackCount > 1 ? "Afternoon snack" : "Snack";
-}
-
-// Hakee tämän päivän reseptisivulla hyväksytyt ateriavalinnat. Puuttuva avain
-// tarkoittaa, ettei kyseiselle ateriatyypille ole vielä hyväksytty reseptiä.
-export async function getTodaysSelections(): Promise<Partial<Record<MealType, SuggestedMeal>>> {
-  const response = await apiFetch(`${mealPlanApi}/selections`, { credentials: "include" });
-  if (!response.ok) {
-    throw new Error("Meal plan loading failed");
-  }
-
-  const data = (await response.json()) as Partial<Record<MealType, BackendRecipe>>;
-  const result: Partial<Record<MealType, SuggestedMeal>> = {};
-  for (const type of MEAL_TYPES) {
-    const recipe = data[type];
-    if (recipe) result[type] = toMeal(recipe, type, mealTypeIcons[type]);
-  }
-  return result;
-}
-
-// Hyväksyy reseptin tietylle ateriatyypille tämän päivän ateriasuunnitelmaan.
-// Korvaa mahdollisen aiemman hyväksynnän samalle ateriatyypille.
-export async function approveMeal(mealType: string, recipeId: number): Promise<void> {
-  const response = await apiFetch(`${mealPlanApi}/selections`, {
-    method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mealType, recipeId }),
-  });
-  if (!response.ok) {
-    throw new Error("Could not add recipe to meal plan");
-  }
 }
 
 // Rivin tila: ehdotus (ei vielä suunnitelmassa) tai hyväksytty (näkyy kalenterissa).
