@@ -65,6 +65,14 @@ npm run test:e2e
 Molempien testitasojen ajaminen on määritetty myös GitHub Actions
 CI-workflow'hun push- ja pull request -tapahtumille `main`-haaraan.
 
+## Backend-autentikointi
+
+Kirjautuminen ja rekisteröityminen palauttavat käyttäjänimen ja JWT-tokenin.
+Frontend tallentaa tokenin selaimen paikalliseen tallennustilaan ja liittää sen
+suojattuihin backend-pyyntöihin otsakkeella
+`Authorization: Bearer <token>`. Pyyntöihin sisältyvät myös evästeet, joten
+backendin aiempaan HttpOnly-evästeautentikointiin perustuva toiminta säilyy.
+
 
 ## Tiimi
 

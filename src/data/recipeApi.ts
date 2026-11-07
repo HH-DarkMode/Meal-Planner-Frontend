@@ -1,5 +1,6 @@
 import type { Meal, RecipeDetails } from "./mealPlan";
 import type { ProfileData } from "./profile";
+import { apiFetch } from "./apiClient";
 
 const recipeApi = `${import.meta.env.VITE_BACKEND_URL}/api/recipes`;
 
@@ -68,7 +69,7 @@ export async function getDayPlan(profile: ProfileData): Promise<SuggestedMeal[]>
   if (profile.carbs !== null) params.set("carbs", String(profile.carbs));
   if (profile.diets.length > 0) params.set("diets", profile.diets.join(","));
 
-  const response = await fetch(`${recipeApi}/plan?${params}`, { credentials: "include" });
+  const response = await apiFetch(`${recipeApi}/plan?${params}`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Recipe loading failed");
   }
@@ -79,7 +80,7 @@ export async function getDayPlan(profile: ProfileData): Promise<SuggestedMeal[]>
 
 // Hakee yhden reseptin ainekset ja valmistusohjeet.
 export async function getRecipeDetails(recipeId: number): Promise<RecipeDetails> {
-  const response = await fetch(`${recipeApi}/${recipeId}`, { credentials: "include" });
+  const response = await apiFetch(`${recipeApi}/${recipeId}`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Recipe details loading failed");
   }

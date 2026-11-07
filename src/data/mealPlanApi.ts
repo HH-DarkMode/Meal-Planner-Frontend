@@ -1,4 +1,5 @@
 import { toMeal, type BackendRecipe, type SuggestedMeal } from "./recipeApi";
+import { apiFetch } from "./apiClient";
 
 const mealPlanApi = `${import.meta.env.VITE_BACKEND_URL}/api/meal-plan`;
 
@@ -15,7 +16,7 @@ export const mealTypeIcons: Record<MealType, string> = {
 // Hakee tämän päivän reseptisivulla hyväksytyt ateriavalinnat. Puuttuva avain
 // tarkoittaa, ettei kyseiselle ateriatyypille ole vielä hyväksytty reseptiä.
 export async function getTodaysSelections(): Promise<Partial<Record<MealType, SuggestedMeal>>> {
-  const response = await fetch(`${mealPlanApi}/selections`, { credentials: "include" });
+  const response = await apiFetch(`${mealPlanApi}/selections`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Meal plan loading failed");
   }
@@ -32,7 +33,7 @@ export async function getTodaysSelections(): Promise<Partial<Record<MealType, Su
 // Hyväksyy reseptin tietylle ateriatyypille tämän päivän ateriasuunnitelmaan.
 // Korvaa mahdollisen aiemman hyväksynnän samalle ateriatyypille.
 export async function approveMeal(mealType: string, recipeId: number): Promise<void> {
-  const response = await fetch(`${mealPlanApi}/selections`, {
+  const response = await apiFetch(`${mealPlanApi}/selections`, {
     method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -72,7 +73,7 @@ export function toDateString(date: Date): string {
 // Rivit, joiden ateriatyyppi on tuntematon, ohitetaan.
 export async function getSelections(from: string, to: string): Promise<PlanEntry[]> {
   const params = new URLSearchParams({ from, to });
-  const response = await fetch(`${mealPlanApi}/selections?${params}`, { credentials: "include" });
+  const response = await apiFetch(`${mealPlanApi}/selections?${params}`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Meal plan loading failed");
   }
@@ -93,7 +94,7 @@ export async function getSelections(from: string, to: string): Promise<PlanEntry
 
 // Merkitsee tietyn päivän aterian syödyksi tai syömättömäksi.
 export async function setEaten(date: string, mealType: MealType, eaten: boolean): Promise<void> {
-  const response = await fetch(`${mealPlanApi}/selections/eaten`, {
+  const response = await apiFetch(`${mealPlanApi}/selections/eaten`, {
     method: "PATCH",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
