@@ -1,147 +1,181 @@
 import "./Recipes.css";
 import { useEffect, useState } from "react";
 import RecipeDetails from "./RecipeDetails";
-import { weekPlan } from "./data/mealPlan";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import type { SuggestedMeal } from "./data/recipeApi";
-import { getSelections, MEAL_TYPES, setEaten, toDateString, type MealType, type PlanEntry } from "./data/mealPlanApi";
+import {
+  acceptDay, getWeek, mealTypeIcons, mealTypeLabel, rerollMeal, setAccepted, setEaten, toDateString,
+  type PlanEntry, type WeekPlan,
+} from "./data/mealPlanApi";
+import { addDays, dayMealTypes, dayTitle, dietWarningText, entryKey, mondayOf } from "./data/weekLogic";
+import { MealActions, WeekView, type PlanActions } from "./WeekPlan";
 
 function MealPlan({ profile }: { profile: ProfileData | null }) {
-  // Tämän päivän ateriat ateriatyypin mukaan. null = vielä latautumassa.
-  const [entries, setEntries] = useState<Partial<Record<MealType, PlanEntry>> | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const today = toDateString(new Date());
+  const thisMonday = mondayOf(new Date());
+  // Näytettävä viikko. Nuolilla voi siirtyä edelliseen ja seuraavaan viikkoon.
+  const [shownStart, setShownStart] = useState(thisMonday);
+  // Ladatut viikot alkupäivän mukaan. Tämä viikko ladataan aina, koska Today's meals käyttää sitä.
+  // "error" = lataus epäonnistui.
+  const [weeks, setWeeks] = useState<Record<string, WeekPlan | "error">>({});
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
   const [selectedMeal, setSelectedMeal] = useState<SuggestedMeal | null>(null);
 
   const canShow = profile !== null && isProfileComplete(profile);
 
+  // Hakee tämän viikon ja näytettävän viikon. Backend luo puuttuvat ehdotukset hakiessaan.
   useEffect(() => {
     if (!canShow) return;
-    const today = toDateString(new Date());
-    getSelections(today, today)
-      .then((list) => {
-        const byType: Partial<Record<MealType, PlanEntry>> = {};
-        for (const entry of list) byType[entry.mealType] = entry;
-        setEntries(byType);
-      })
-      .catch(() => setLoadFailed(true));
-  }, [canShow]);
+    for (const start of new Set([thisMonday, shownStart])) {
+      getWeek(start, today)
+        .then((plan) => setWeeks((current) => ({ ...current, [start]: plan })))
+        .catch(() => setWeeks((current) => ({ ...current, [start]: "error" })));
+    }
+  }, [canShow, thisMonday, shownStart, today]);
 
-  // Päivittää aterian syöty-tilan näkymään.
-  function updateEaten(type: MealType, eaten: boolean) {
-    setEntries((current) => {
-      const entry = current?.[type];
-      return current && entry ? { ...current, [type]: { ...entry, eaten } } : current;
+  // Muuttaa rivejä kaikissa ladatuissa viikoissa. Sama rivi voi olla kahdessa, jos näytetään tätä viikkoa.
+  function updateEntries(change: (entry: PlanEntry) => PlanEntry) {
+    setWeeks((current) => Object.fromEntries(Object.entries(current).map(([start, plan]) =>
+      [start, plan === "error" ? plan : { ...plan, entries: plan.entries.map(change) }])));
+  }
+
+  function updateOne(target: PlanEntry, change: Partial<PlanEntry>) {
+    updateEntries((entry) =>
+      entry.date === target.date && entry.mealType === target.mealType ? { ...entry, ...change } : entry);
+  }
+
+  // Näkymä päivittyy heti, ja jos tallennus epäonnistuu, muutos perutaan (sama malli kuin ennen syöty-täpässä).
+  function saveOptimistically(entry: PlanEntry, change: Partial<PlanEntry>, save: () => Promise<void>) {
+    setActionError(null);
+    updateOne(entry, change);
+    save().catch(() => {
+      updateOne(entry, { status: entry.status, eaten: entry.eaten });
+      setActionError("Could not save the change. Try again.");
     });
   }
 
-  // Täppä: näkymä päivittyy heti, ja jos tallennus epäonnistuu, muutos perutaan.
-  function toggleEaten(type: MealType) {
-    const entry = entries?.[type];
-    if (!entry) return;
-    const eaten = !entry.eaten;
-    setSaveFailed(false);
-    updateEaten(type, eaten);
-    setEaten(entry.date, type, eaten).catch(() => {
-      updateEaten(type, !eaten);
-      setSaveFailed(true);
-    });
-  }
+  const actions: PlanActions = {
+    onToggleAccepted: (entry) => {
+      const accepted = entry.status !== "ACCEPTED";
+      saveOptimistically(entry, { status: accepted ? "ACCEPTED" : "SUGGESTED" },
+        () => setAccepted(entry.date, entry.mealType, accepted));
+    },
+    onToggleEaten: (entry) =>
+      saveOptimistically(entry, { eaten: !entry.eaten }, () => setEaten(entry.date, entry.mealType, !entry.eaten)),
+    // Vaihda odottaa backendin vastausta, koska uusi resepti tulee sieltä.
+    onReroll: (entry) => {
+      setActionError(null);
+      setBusyKey(entryKey(entry.date, entry.mealType));
+      rerollMeal(entry.date, entry.mealType, today)
+        .then((updated) => updateOne(entry, { meal: updated.meal }))
+        .catch((error: Error) => setActionError(error.message))
+        .finally(() => setBusyKey(null));
+    },
+    onAcceptDay: (date) => {
+      setActionError(null);
+      const isDaySuggestion = (entry: PlanEntry) => entry.date === date && entry.status === "SUGGESTED";
+      // Muistetaan, mitkä olivat ehdotuksia, jotta ne voidaan palauttaa virheen sattuessa.
+      const keys = new Set(Object.values(weeks).flatMap((plan) => plan === "error" ? [] : plan.entries)
+        .filter(isDaySuggestion).map((entry) => entryKey(entry.date, entry.mealType)));
+      updateEntries((entry) => isDaySuggestion(entry) ? { ...entry, status: "ACCEPTED" } : entry);
+      acceptDay(date).catch(() => {
+        updateEntries((entry) => keys.has(entryKey(entry.date, entry.mealType)) ? { ...entry, status: "SUGGESTED" } : entry);
+        setActionError("Could not accept the day. Try again.");
+      });
+    },
+    onOpen: setSelectedMeal,
+    busyKey,
+  };
+
+  const currentWeek = weeks[thisMonday];
+  const shownWeek = weeks[shownStart];
+  const todayEntries = currentWeek && currentWeek !== "error" ? currentWeek.entries.filter((e) => e.date === today) : [];
 
   return (
   <main className="recipes-page meal-plan-page">
     <header className="recipes-page-header">
       <span className="recipes-badge">✦ AI MEAL PLANNER</span>
       <p className="recipes-eyebrow">MEAL PLAN</p>
-        <h1>Plan the week.<br />
-          <span>Eat with ease.</span>
-        </h1>
-        <p className="recipes-description">See today&apos;s meals and your full weekly plan in one place.</p>
+      <h1>Plan the week.<br /><span>Eat with ease.</span></h1>
+      <p className="recipes-description">See today&apos;s meals and your full weekly plan in one place.</p>
     </header>
+
     <section className="recipes-section">
       <div className="recipes-section-heading"><div>
-      <p className="recipes-section-label">
-        TODAY</p>
-      <h2>Today&apos;s meals</h2>
-      <p className="recipes-section-subtitle">Meals designed to support your goals today.</p>
-      </div>
-      </div>
-      {!canShow && <p className="recipes-message">Complete and save your profile to see today&apos;s meals.</p>}
-      {canShow && loadFailed && <p className="recipes-message">Could not load today&apos;s meals. Is the backend running?</p>}
-      {canShow && saveFailed && <p className="recipes-message">Could not save the change. Try again.</p>}
-      {canShow && !loadFailed && !entries && <p className="recipes-message">Loading today&apos;s meals...</p>}
-      {canShow && entries &&
-      <div className="today-recipe-grid">
-      {
-        MEAL_TYPES.map((type) => {
-          const entry = entries[type];
-          return entry
-            ? <MealCard
-                key={type}
-                meal={entry.meal}
-                eaten={entry.eaten}
-                onToggleEaten={() => toggleEaten(type)}
-                onOpen={() => setSelectedMeal(entry.meal)}
-              />
-            : <article className="recipe-meal-card" key={type}>
-                <div className="recipe-meal-info">
-                  <span className="recipe-meal-type">{type}</span>
-                  <p className="recipes-message">No {type.toLowerCase()} chosen yet. Pick one on the Recipes page.</p>
-                </div>
-              </article>;
-        })
-      }
-      </div>
-      }
+        <p className="recipes-section-label">TODAY</p>
+        <h2>Today&apos;s meals</h2>
+        <p className="recipes-section-subtitle">Add suggestions to your plan and mark meals as eaten.</p>
+      </div></div>
+      {!canShow && <p className="recipes-message">Complete and save your profile to see your meal plan.</p>}
+      {canShow && currentWeek === "error" && <p className="recipes-message">Could not load today&apos;s meals. Is the backend running?</p>}
+      {canShow && !currentWeek && <p className="recipes-message">Loading today&apos;s meals...</p>}
+      {canShow && actionError && <p className="recipes-message">{actionError}</p>}
+      {canShow && currentWeek && currentWeek !== "error" &&
+        <div className="today-recipe-grid">
+          {dayMealTypes(currentWeek.mealTypes, todayEntries).map((type) => {
+            const entry = todayEntries.find((e) => e.mealType === type);
+            const label = mealTypeLabel(type, currentWeek.mealTypes);
+            return entry
+              ? <TodayMealCard key={type} entry={entry} label={label} today={today} actions={actions} />
+              : <article className="recipe-meal-card is-empty" key={type}>
+                  <div className="recipe-meal-icon">{mealTypeIcons[type]}</div>
+                  <div className="recipe-meal-info">
+                    <span className="recipe-meal-type">{label}</span>
+                    <p className="recipe-empty-text">No suitable recipe found. Try changing your goals or diets on the Profile page.</p>
+                  </div>
+                </article>;
+          })}
+        </div>}
     </section>
+
     {selectedMeal && <RecipeDetails key={selectedMeal.recipeId} meal={selectedMeal} backLabel="Back to meal plan" onClose={() => setSelectedMeal(null)} />}
+
     <section className="recipes-section week-section">
-      <div className="recipes-section-heading"><div>
-        <p className="recipes-section-label">WEEK</p>
-          <h2>Weekly plan <span className="not-implemented-badge">Not yet implemented</span></h2>
-        <p className="recipes-section-subtitle">
-          Keep the full picture visible and make daily life easier.
-        </p>
+      <div className="recipes-section-heading">
+        <div>
+          <p className="recipes-section-label">WEEK</p>
+          <h2>Weekly plan</h2>
+          <p className="recipes-section-subtitle">
+            {dayTitle(shownStart).short} – {dayTitle(addDays(shownStart, 6)).short}. Add meals one by one, a day at a time or plan ahead.
+          </p>
         </div>
+        {canShow && <div className="week-nav">
+          <button className="secondary-button" onClick={() => setShownStart(addDays(shownStart, -7))}>‹ Previous</button>
+          {shownStart !== thisMonday && <button className="secondary-button" onClick={() => setShownStart(thisMonday)}>This week</button>}
+          <button className="secondary-button" onClick={() => setShownStart(addDays(shownStart, 7))}>Next ›</button>
+        </div>}
       </div>
-      <div className="week-grid">
-        {
-          weekPlan.map((day) => <article className="week-day-card" key={day.day}>
-            <div className="week-day-header">
-              <div>
-                <span>{day.day}</span>
-                <small>{day.date}</small>
-              </div>
-              <span className="week-day-count">
-                {day.meals.length} meals
-              </span>
-              </div>
-            <div className="week-meals">
-              {day.meals.map((meal) => <div className="week-meal" key={meal.name}><span className="week-meal-icon">{meal.icon}</span><div><span>{meal.type}</span><strong>{meal.name}</strong><small>{meal.calories} kcal</small></div></div>)}</div></article>)}</div></section>
+      {canShow && shownWeek === "error" && <p className="recipes-message">Could not load the week. Is the backend running?</p>}
+      {canShow && !shownWeek && <p className="recipes-message">Loading the week...</p>}
+      {canShow && actionError && <p className="recipes-message">{actionError}</p>}
+      {canShow && shownWeek && shownWeek !== "error" &&
+        <WeekView start={shownStart} today={today} mealTypes={shownWeek.mealTypes} entries={shownWeek.entries} actions={actions} />}
+    </section>
   </main>
   );
 }
 
-function MealCard({ meal, eaten, onToggleEaten, onOpen }: {
-  meal: SuggestedMeal;
-  eaten: boolean;
-  onToggleEaten: () => void;
-  onOpen: () => void;
+// Tämän päivän ateria isona korttina: makrot, valmistusaika, koko diet-varoitus ja napit.
+// Ehdotus näkyy katkoviivareunuksella, syöty vihreällä reunuksella.
+function TodayMealCard({ entry, label, today, actions }: {
+  entry: PlanEntry;
+  label: string;
+  today: string;
+  actions: PlanActions;
 }) {
-  return <article className={`recipe-meal-card${eaten ? " is-eaten" : ""}`}>
+  const { meal } = entry;
+  const suggested = entry.status === "SUGGESTED";
+  return <article className={`recipe-meal-card${entry.eaten ? " is-eaten" : ""}${suggested ? " is-suggested" : ""}`}>
     <div className="recipe-meal-icon">{meal.icon}</div>
     <div className="recipe-meal-info">
-      <span className="recipe-meal-type">{meal.type}</span>
+      <span className="recipe-meal-type">{label}{suggested && " · suggestion"}</span>
       <h3>{meal.name}</h3>
       <div className="recipe-meal-meta"><span>{meal.calories} kcal</span><span>{meal.protein} g protein</span><span>{meal.carbs} g carbs</span></div>
       {meal.time > 0 && <p className="recipe-time">⏱ {meal.time} min</p>}
+      {meal.dietWarning && <p className="recipe-warning">{dietWarningText(meal)}</p>}
+      <MealActions entry={entry} today={today} actions={actions} />
     </div>
-    {/* "Syöty"-täppä: merkitään, kun ateria on oikeasti syöty. Vaikuttaa kalenterin väreihin ja yhteenvetoihin. */}
-    <label className="eaten-check">
-      <input type="checkbox" checked={eaten} onChange={onToggleEaten} aria-label={`Mark ${meal.name} as eaten`} />
-      <span>Eaten</span>
-    </label>
-    <button className="recipe-arrow" aria-label={`Open recipe: ${meal.name}`} onClick={onOpen}>→</button>
   </article>;
 }
 

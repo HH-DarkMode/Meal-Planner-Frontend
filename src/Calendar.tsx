@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import CalendarComponent from "react-calendar";
 import type { OnArgs, Value } from "react-calendar/dist/shared/types.js";
 import { calendarGridRange, dayStatuses, mealState, monthRange, summarize, weekRange, type Macros, type MealState } from "./data/calendarLogic";
-import { getSelections, MEAL_TYPES, toDateString, type PlanEntry } from "./data/mealPlanApi";
+import { getMealTypes, getSelections, mealTypeLabel, toDateString, type MealType, type PlanEntry } from "./data/mealPlanApi";
+import { dayMealTypes } from "./data/weekLogic";
 import "./Calendar.css";
 
 // Pallon selite ruudunlukijalle ja merkki pallon sisällä. Merkki auttaa erottamaan tilat
@@ -121,6 +122,16 @@ function Calendar() {
   const [loadFailed, setLoadFailed] = useState(false);
   // Mikä yhteenveto näytetään kalenterin alla.
   const [mode, setMode] = useState<SummaryMode>("day");
+  // Käyttäjän päivän ateriat järjestyksessä (profiilin ateriamäärän mukaan, esim. Breakfast,
+  // Lunch, Dinner, Supper). Tyhjä lista, kunnes haettu. Silloin näytetään vain päivän ateriat.
+  const [mealTypes, setMealTypes] = useState<MealType[]>([]);
+
+  // Haetaan kerran, kun kalenteri avataan. Jos haku epäonnistuu, näytetään vain päivän hyväksytyt ateriat.
+  useEffect(() => {
+    getMealTypes()
+      .then(setMealTypes)
+      .catch(() => setMealTypes([]));
+  }, []);
 
   // Hakee näkyvän kuukauden ateriat aina, kun käyttäjä vaihtaa kuukautta.
   useEffect(() => {
@@ -160,7 +171,7 @@ function Calendar() {
   const todayString = toDateString(today);
   const selectedDateString = toDateString(selectedDate);
 
-  // Valitun päivän ateriat. Järjestys tulee MEAL_TYPES-listasta, kun paikat piirretään.
+  // Valitun päivän ateriat. Paikat ja järjestys tulevat dayMealTypes-funktiosta (sama kuin viikkonäkymässä).
   const selectedEntries = entries.filter((entry) => entry.date === selectedDateString);
 
   // Päivien taustavärit kuukausinäkymää varten.
@@ -314,9 +325,11 @@ function Calendar() {
           <>
             {/* Meal cards: jokainen ateriapaikka näkyy, myös valitsematon (harmaa pallo) */}
             <div className="calendar-meal-list">
-              {MEAL_TYPES.map((type) => {
+              {dayMealTypes(mealTypes, selectedEntries).map((type) => {
                 const entry = selectedEntries.find((e) => e.mealType === type);
                 const state = mealState(entry, selectedDateString, todayString);
+                // Näyttönimi: "Snack" näytetään nimellä "Afternoon snack", jos välipaloja on useita.
+                const label = mealTypeLabel(type, mealTypes);
 
                 if (!entry) {
                   return (
@@ -324,11 +337,11 @@ function Calendar() {
                       <div className="calendar-meal-info">
                         <span className="calendar-meal-type">
                           <MealBall state={state} />
-                          {type}
+                          {label}
                         </span>
 
                         <p className="calendar-meal-empty">
-                          No {type.toLowerCase()} chosen.
+                          No {label.toLowerCase()} chosen.
                         </p>
                       </div>
                     </div>
@@ -347,7 +360,7 @@ function Calendar() {
                     <div className="calendar-meal-info">
                       <span className="calendar-meal-type">
                         <MealBall state={state} />
-                        {entry.meal.type}
+                        {label}
                       </span>
 
                       <h3>{entry.meal.name}</h3>

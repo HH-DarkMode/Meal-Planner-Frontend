@@ -1,5 +1,4 @@
 import type { Meal, RecipeDetails } from "./mealPlan";
-import type { ProfileData } from "./profile";
 import { apiFetch } from "./apiClient";
 
 const recipeApi = `${import.meta.env.VITE_BACKEND_URL}/api/recipes`;
@@ -27,20 +26,6 @@ export type BackendRecipe = {
   dietWarning: boolean;
 };
 
-type BackendDayPlan = {
-  breakfast: BackendRecipe[];
-  lunch: BackendRecipe[];
-  snack: BackendRecipe[];
-  dinner: BackendRecipe[];
-};
-
-const mealSlots = [
-  { key: "breakfast", type: "Breakfast", icon: "🥣" },
-  { key: "lunch", type: "Lunch", icon: "🥗" },
-  { key: "snack", type: "Snack", icon: "🍎" },
-  { key: "dinner", type: "Dinner", icon: "🍝" },
-] as const;
-
 export function toMeal(recipe: BackendRecipe, type: string, icon: string): SuggestedMeal {
   return {
     icon,
@@ -57,25 +42,6 @@ export function toMeal(recipe: BackendRecipe, type: string, icon: string): Sugge
     dietWarning: recipe.dietWarning,
     unmatchedIngredients: recipe.unmatchedIngredients,
   };
-}
-
-// Hakee päivän ateriaehdotukset profiilin tavoitteiden ja ruokavalioiden perusteella
-// (yksi resepti aamiaiselle, lounaalle ja päivälliselle).
-export async function getDayPlan(profile: ProfileData): Promise<SuggestedMeal[]> {
-  const params = new URLSearchParams({ optionsPerMeal: "1" });
-  if (profile.calories !== null) params.set("calories", String(profile.calories));
-  if (profile.protein !== null) params.set("protein", String(profile.protein));
-  if (profile.fat !== null) params.set("fat", String(profile.fat));
-  if (profile.carbs !== null) params.set("carbs", String(profile.carbs));
-  if (profile.diets.length > 0) params.set("diets", profile.diets.join(","));
-
-  const response = await apiFetch(`${recipeApi}/plan?${params}`, { credentials: "include" });
-  if (!response.ok) {
-    throw new Error("Recipe loading failed");
-  }
-
-  const plan = (await response.json()) as BackendDayPlan;
-  return mealSlots.flatMap((slot) => plan[slot.key].map((recipe) => toMeal(recipe, slot.type, slot.icon)));
 }
 
 // Hakee yhden reseptin ainekset ja valmistusohjeet.

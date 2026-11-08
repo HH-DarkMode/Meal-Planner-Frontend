@@ -498,3 +498,109 @@
     padding: 20px;
   }
 }
+
+/* ---------- Viikkosuunnitelma ---------- */
+
+/* Tämä päivä: paksu vihreä reunus ja Today-merkki */
+.week-day-card.is-today {
+  border: 2px solid var(--green);
+}
+
+.today-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--green);
+  color: var(--surface);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* Menneet päivät himmennettyinä */
+.week-day-card.is-past {
+  opacity: 0.65;
+}
+
+/* Ehdotus (ei vielä hyväksytty): katkoviiva. Hyväksytty näyttää tavalliselta. */
+.week-meal.is-suggested .week-meal-icon {
+  border: 1px dashed var(--line);
+  background: transparent;
+}
+
+.recipe-meal-card.is-suggested {
+  border-style: dashed;
+}
+
+.week-meal.is-empty {
+  opacity: 0.6;
+}
+
+.week-meal .week-meal-info {
+  flex: 1;
+}
+
+/* Napit vierekkäin (ohittaa .week-meal div -säännön, joka asettaa sisällön allekkain) */
+.week-meal .week-meal-actions,
+.recipe-meal-info .week-meal-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.recipe-meal-info .week-meal-actions {
+  margin-top: 10px;
+}
+
+.week-meal-actions .recipe-approve-button {
+  margin-top: 0;
+  padding: 5px 10px;
+}
+
+.icon-button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* Eaten-teksti päiväkortissa: .week-meal span -sääntö tekisi siitä vihreän isokirjaimisen */
+.week-meal .eaten-check span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Diet-varoitus päiväkortissa: ⚠, koko teksti hiiren alla */
+.diet-warning-badge {
+  color: #b7791f;
+  text-decoration: none;
+  cursor: help;
+}
+
+.week-accept-all {
+  margin-top: 14px;
+}
+
+.week-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
