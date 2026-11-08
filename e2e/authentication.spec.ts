@@ -44,3 +44,37 @@ test("user can sign in and open the profile", async ({ page }) => {
   await page.reload();
   await expect(page.getByRole("button", { name: "Open profile" })).toBeVisible();
 });
+
+test("expired session during profile save asks the user to sign in again", async ({ page }) => {
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({ status: 401, body: "" });
+  });
+  await page.route("**/api/auth/login", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ username: "e2e-user", token: "e2e-token" }),
+    });
+  });
+  await page.route("**/api/profile", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ username: "e2e-user", diets: [] }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 401, body: "" });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("Username").fill("e2e-user");
+  await page.getByLabel("Password").fill("password-123");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Open profile" }).click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveText("Your session has expired. Please sign in again.");
+});

@@ -4,9 +4,10 @@ import "./Auth.css";
 
 type AuthProps = {
   onAuthenticated: (user: AuthUser) => void;
+  notice?: string | null;
 };
 
-function Auth({ onAuthenticated }: AuthProps) {
+function Auth({ onAuthenticated, notice }: AuthProps) {
   const [isRegistering, setIsRegistering] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,6 +36,7 @@ function Auth({ onAuthenticated }: AuthProps) {
         <p className="auth-description">
           {isRegistering ? "Save your meal planning profile securely." : "Sign in to access your meal plan and profile."}
         </p>
+        {notice && <p className="auth-error" role="alert">{notice}</p>}
         <form onSubmit={handleSubmit}>
           <label>
             Username

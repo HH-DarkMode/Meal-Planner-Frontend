@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import axios from "axios";
 import { emptyProfile } from "./profile";
 import { getProfile, normalizeProfile, saveProfile } from "./profileApi";
+import { authSessionExpiredEvent } from "./apiClient";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -54,5 +55,25 @@ describe("profileApi", () => {
       withCredentials: true,
       headers: { Authorization: "Bearer jwt-token" },
     });
+  });
+
+  it("notifies the app when saving fails because the session expired", async () => {
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal("window", {
+      localStorage: {
+        getItem: () => "expired-token",
+        removeItem: vi.fn(),
+      },
+      dispatchEvent,
+    });
+    vi.spyOn(axios, "put").mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 401 },
+    });
+
+    await expect(saveProfile(emptyProfile)).rejects.toThrow("Profile saving failed");
+    expect(dispatchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: authSessionExpiredEvent }),
+    );
   });
 });

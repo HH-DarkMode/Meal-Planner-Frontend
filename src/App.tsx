@@ -9,6 +9,7 @@ import Profile from "./Profile";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import { getProfile } from "./data/profileApi";
 import { getCurrentUser, logout, type AuthUser } from "./data/authApi";
+import { authSessionExpiredEvent } from "./data/apiClient";
 import Auth from "./Auth";
 
 type Theme = "system" | "light" | "dark";
@@ -34,6 +35,7 @@ function App() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
   const theme: ResolvedTheme = themePreference === "system" ? systemTheme : themePreference;
   const isDarkTheme = theme === "dark";
   const navigate = (nextView: View) => {
@@ -69,11 +71,25 @@ function App() {
       .finally(() => setAuthLoading(false));
   }, []);
 
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setUser(null);
+      setProfile(null);
+      setAuthNotice("Your session has expired. Please sign in again.");
+    };
+    window.addEventListener(authSessionExpiredEvent, handleSessionExpired);
+    return () => window.removeEventListener(authSessionExpiredEvent, handleSessionExpired);
+  }, []);
+
   if (authLoading) return <main className="auth-page"><p>Loading...</p></main>;
-  if (!user) return <Auth onAuthenticated={(authenticatedUser) => {
-    setUser(authenticatedUser);
-    getProfile().then(setProfile).catch(() => setProfile(null));
-  }} />;
+  if (!user) return <Auth
+    notice={authNotice}
+    onAuthenticated={(authenticatedUser) => {
+      setAuthNotice(null);
+      setUser(authenticatedUser);
+      getProfile().then(setProfile).catch(() => setProfile(null));
+    }}
+  />;
 
   const handleLogout = () => {
     logout().finally(() => {

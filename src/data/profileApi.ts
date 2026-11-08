@@ -1,8 +1,20 @@
 import axios from "axios";
 import { emptyProfile, type ProfileData } from "./profile";
-import { authorizationHeaders } from "./apiClient";
+import { authorizationHeaders, notifyAuthSessionExpired } from "./apiClient";
 
 const profileApi = `${import.meta.env.VITE_BACKEND_URL}/api/profile`;
+
+export class ProfileApiError extends Error {
+  readonly status: number | undefined;
+  readonly isNetworkError: boolean;
+
+  constructor(message: string, cause: unknown) {
+    super(message, { cause });
+    this.name = "ProfileApiError";
+    this.status = axios.isAxiosError(cause) ? cause.response?.status : undefined;
+    this.isNetworkError = axios.isAxiosError(cause) && cause.response === undefined;
+  }
+}
 
 export function normalizeProfile(data: Partial<ProfileData>): ProfileData {
   return {
@@ -23,9 +35,8 @@ export async function getProfile(): Promise<ProfileData> {
     });
     return normalizeProfile(response.data as Partial<ProfileData>);
   } catch (error) {
-    throw new Error("Profile loading failed", {
-      cause: error,
-    });
+    handleUnauthorized(error);
+    throw new ProfileApiError("Profile loading failed", error);
   }
 }
 
@@ -37,8 +48,13 @@ export async function saveProfile(profile: ProfileData): Promise<ProfileData> {
     });
     return normalizeProfile(response.data as Partial<ProfileData>);
   } catch (error) {
-    throw new Error("Profile saving failed", {
-      cause: error,
-    });
+    handleUnauthorized(error);
+    throw new ProfileApiError("Profile saving failed", error);
+  }
+}
+
+function handleUnauthorized(error: unknown): void {
+  if (axios.isAxiosError(error) && error.response?.status === 401) {
+    notifyAuthSessionExpired();
   }
 }

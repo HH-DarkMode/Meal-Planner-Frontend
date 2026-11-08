@@ -1,4 +1,10 @@
-import { apiFetch, clearAuthToken, getAuthToken, setAuthToken } from "./apiClient";
+import {
+  apiFetch,
+  clearAuthToken,
+  getAuthToken,
+  notifyAuthSessionExpired,
+  setAuthToken,
+} from "./apiClient";
 
 const authApi = `${import.meta.env.VITE_BACKEND_URL}/api/auth`;
 
@@ -24,7 +30,7 @@ async function request(path: string, options: RequestInit = {}): Promise<AuthRes
     ...options,
     credentials: "include",
     headers: { "Content-Type": "application/json", ...options.headers },
-  });
+  }, { notifyOnUnauthorized: false });
 
   if (response.status === 204) return null;
   if (!response.ok) {
@@ -62,6 +68,7 @@ export function getCurrentUser(): Promise<AuthUser | null> {
     } catch (fallbackError) {
       if (fallbackError instanceof AuthRequestError
         && (fallbackError.status === 401 || fallbackError.status === 403)) {
+        notifyAuthSessionExpired();
         return null;
       }
       throw fallbackError;

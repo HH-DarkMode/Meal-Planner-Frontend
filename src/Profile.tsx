@@ -1,7 +1,7 @@
 import "./Profile.css";
 import { useEffect, useMemo, useState } from "react";
 import { type ProfileData } from "./data/profile";
-import { getProfile, saveProfile as persistProfile } from "./data/profileApi";
+import { getProfile, ProfileApiError, saveProfile as persistProfile } from "./data/profileApi";
 
 const goals = [
   { id: "aggressive-bulk", label: "Aggressive bulk", adjustment: 1.2 },
@@ -84,7 +84,13 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           });
         }
       })
-      .catch(() => setMessage("The backend is not running."))
+      .catch((error: unknown) => {
+        if (error instanceof ProfileApiError && error.isNetworkError) {
+          setMessage("Could not connect to the backend. Check your connection and try again.");
+        } else {
+          setMessage("Could not load your profile. Please try again.");
+        }
+      })
       .finally(() => setIsLoading(false));
   }, [initialProfile]);
 
@@ -175,8 +181,12 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
       });
       onProfileSaved(savedProfile);
       setMessage("Changes saved.");
-    } catch {
-      setMessage("Saving failed. Start the backend on port 8080.");
+    } catch (error: unknown) {
+      if (error instanceof ProfileApiError && error.isNetworkError) {
+        setMessage("Could not connect to the backend. Check your connection and try again.");
+      } else {
+        setMessage("Saving failed. Please try again.");
+      }
     } finally {
       setIsSaving(false);
     }
