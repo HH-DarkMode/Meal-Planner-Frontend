@@ -19,7 +19,7 @@ test("user can sign in and open the profile", async ({ page }) => {
       body: JSON.stringify({ username: "e2e-user", token: "e2e-token" }),
     });
   });
-  await page.route("**/api/profile", async (route) => {
+  await page.route("**/api/profile**", async (route) => {
     expect(route.request().headers().authorization).toBe("Bearer e2e-token");
     if (route.request().method() === "GET") {
       await route.fulfill({
@@ -56,7 +56,7 @@ test("expired session during profile save asks the user to sign in again", async
       body: JSON.stringify({ username: "e2e-user", token: "e2e-token" }),
     });
   });
-  await page.route("**/api/profile", async (route) => {
+  await page.route("**/api/profile**", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({
         status: 200,
