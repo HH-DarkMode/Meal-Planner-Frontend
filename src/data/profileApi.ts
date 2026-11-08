@@ -1,6 +1,7 @@
 import axios from "axios";
 import { emptyProfile, type ProfileData } from "./profile";
-import { authorizationHeaders } from "./apiClient";
+import { authorizationHeaders, notifyAuthSessionExpired } from "./apiClient";
+import { toDateString } from "./mealPlanApi";
 
 const profileApi = `${import.meta.env.VITE_BACKEND_URL}/api/profile`;
 
