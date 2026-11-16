@@ -88,3 +88,9 @@ Projekti on tällä hetkellä suunnitteluvaiheessa. Projektin edetessä README-t
 
 ## Projektin julkaisu linkki
 [AI-Meal-Planner](https://ai-meal-planner-darkmode.onrender.com/)
+
+## Lisenssi
+
+Tämä projekti on lisensoitu GNU General Public License v3.0 -lisenssillä.
+
+Lisätietoja lisenssin ehdoista löytyy [LICENSE](LICENSE)-tiedostosta.
