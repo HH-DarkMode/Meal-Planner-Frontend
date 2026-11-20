@@ -1,8 +1,8 @@
 import "./Recipes.css";
 
-// My recipes: tuleva sivu (sprint 4), jolle käyttäjä tallentaa suosikkireseptinsä sydämellä (♡).
-// Reseptiehdotukset ja niiden valinta on siirretty Meal plan -sivulle (viikkonäkymä).
-function Recipes({ onOpenMealPlan }: { onOpenMealPlan: () => void }) {
+// My recipes: käyttäjän suosikkireseptit, jotka hän on tallentanut sydämellä (♡).
+// Reseptiehdotukset ja niiden valinta ovat Meal plan -sivulla (viikkonäkymä).
+function MyRecipes({ onOpenMealPlan }: { onOpenMealPlan: () => void }) {
   return <main className="recipes-page">
     <header className="recipes-page-header">
       <span className="recipes-badge">✦ AI MEAL PLANNER</span>
@@ -21,4 +21,4 @@ function Recipes({ onOpenMealPlan }: { onOpenMealPlan: () => void }) {
   </main>;
 }
 
-export default Recipes;
+export default MyRecipes;
