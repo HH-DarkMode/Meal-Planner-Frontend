@@ -1,7 +1,8 @@
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import type { SuggestedMeal } from "./data/recipeApi";
 import { mealTypeIcons, mealTypeLabel, type MealType, type PlanEntry } from "./data/mealPlanApi";
 import {
-  canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, dayTitle, dietWarningText, entryKey, weekDays,
+  canChooseFavourite, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, dayTitle, dietWarningText, entryKey, weekDays,
 } from "./data/weekLogic";
 
 // Toiminnot, jotka Meal plan -sivu antaa viikkonäkymälle ja Today's meals -korteille.
@@ -15,6 +16,10 @@ export type PlanActions = {
   // Suosikkien reseptitunnukset. null = suosikkeja ei ole vielä ladattu (tai lataus epäonnistui),
   // jolloin sydäntä ei näytetä, ettei se näytä väärää tilaa.
   favouriteIds: Set<number> | null;
+  // Suosikit listana (♥▾-valikko). null = ei ladattu, jolloin ♥▾-nappia ei näytetä.
+  favourites: SuggestedMeal[] | null;
+  // Valitsee suosikin päivän ateriaksi (hyväksytty). Odottaa backendin vastausta.
+  onChooseFavourite: (date: string, mealType: MealType, meal: SuggestedMeal) => void;
   busyKey: string | null; // käynnissä oleva Vaihda ("päivä|ateria"), sen nappi on pois käytöstä
 };
 
@@ -67,7 +72,9 @@ function DayCard({ date, today, mealTypes, entries, actions }: {
           // Tyhjä paikka: menneelle päivälle ei luoda ehdotuksia, tulevalle ei löytynyt sopivaa reseptiä.
           : <div className="week-meal is-empty" key={type}>
               <span className="week-meal-icon">{mealTypeIcons[type]}</span>
-              <div><span>{label}</span><small>{date < today ? "Not planned" : "No suitable recipe found"}</small></div>
+              <div className="week-meal-info"><span>{label}</span><small>{date < today ? "Not planned" : "No suitable recipe found"}</small></div>
+              {canChooseFavourite(date, today) &&
+                <FavouritePicker date={date} mealType={type} actions={actions} />}
             </div>;
       })}
     </div>
@@ -114,6 +121,8 @@ export function MealActions({ entry, today, actions }: { entry: PlanEntry; today
       <button className="icon-button" onClick={() => actions.onReroll(entry)}
         disabled={actions.busyKey === entryKey(entry.date, entry.mealType)}
         title="New suggestion" aria-label={`New suggestion for ${entry.mealType}`}>↻</button>}
+    {canChooseFavourite(entry.date, today, entry) &&
+      <FavouritePicker date={entry.date} mealType={entry.mealType} actions={actions} />}
     {canMarkEaten(entry, today) &&
       <label className="eaten-check">
         <input type="checkbox" checked={entry.eaten} onChange={() => actions.onToggleEaten(entry)}
@@ -140,4 +149,65 @@ export function FavouriteButton({ meal, isFavourite, onToggle }: {
     onClick={() => onToggle(meal)} aria-pressed={isFavourite} aria-label={label} title={label}>
     {isFavourite ? "♥" : "♡"}
   </button>;
+}
+
+const MENU_WIDTH = 240; // sama kuin CSS:n .favourite-picker-menu width
+
+// ♥▾: avaa listan suosikeista, ja valittu suosikki tulee aterian paikalle hyväksyttynä.
+// Lista suljetaan, kun suosikki valitaan, kun nappia painetaan uudelleen, kun klikataan listan
+// ulkopuolelle tai kun painetaan Esc.
+export function FavouritePicker({ date, mealType, actions }: {
+  date: string;
+  mealType: MealType;
+  actions: PlanActions;
+}) {
+  const [open, setOpen] = useState(false);
+  // true = lista aukeaa napista vasemmalle (oikealla ei ole tilaa), false = oikealle.
+  const [alignRight, setAlignRight] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Avattaessa katsotaan, mahtuuko lista napin oikealle puolelle ruudussa.
+  function toggle(event: ReactMouseEvent<HTMLButtonElement>) {
+    const button = event.currentTarget.getBoundingClientRect();
+    setAlignRight(button.left + MENU_WIDTH > window.innerWidth - 16);
+    setOpen(!open);
+  }
+
+  // Kun lista on auki, kuunnellaan klikkauksia ja Esc-näppäintä koko sivulla.
+  // Kuuntelijat poistetaan, kun lista suljetaan (return-funktio).
+  useEffect(() => {
+    if (!open) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  if (!actions.favourites) return null;
+  const favourites = actions.favourites;
+
+  return <div className="favourite-picker" ref={pickerRef}>
+    <button className="icon-button favourite-picker-button" onClick={toggle}
+      disabled={actions.busyKey === entryKey(date, mealType)}
+      aria-expanded={open} aria-label={`Choose a favourite for ${mealType}`} title="Choose a favourite">♥▾</button>
+    {open && <div className={`favourite-picker-menu${alignRight ? " align-right" : ""}`} role="menu">
+      {favourites.length === 0
+        ? <p className="favourite-picker-empty">No favourites yet – tap ♡ on a recipe to save it.</p>
+        : favourites.map((meal) => (
+          <button key={meal.recipeId} className="favourite-picker-item" role="menuitem"
+            onClick={() => { setOpen(false); actions.onChooseFavourite(date, mealType, meal); }}>
+            <span className="favourite-picker-name">{meal.name}</span>
+            <span className="favourite-picker-kcal">{meal.calories} kcal</span>
+          </button>
+        ))}
+    </div>}
+  </div>;
 }

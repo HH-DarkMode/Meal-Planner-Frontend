@@ -57,6 +57,12 @@ export function canMarkEaten(entry: PlanEntry, today: string): boolean {
   return entry.status === "ACCEPTED" && entry.date <= today;
 }
 
+// Suosikin valinta (♥▾): vain tänään tai tulevaisuudessa, eikä syödylle aterialle.
+// entry puuttuu, jos paikka on tyhjä (sopivaa reseptiä ei löytynyt), ja tyhjän paikan voi täyttää.
+export function canChooseFavourite(date: string, today: string, entry?: PlanEntry): boolean {
+  return date >= today && !entry?.eaten;
+}
+
 // Syötyä ateriaa ei voi poistaa suunnitelmasta: ensin poistetaan syöty-merkintä.
 export function canToggleAccepted(entry: PlanEntry): boolean {
   return !(entry.status === "ACCEPTED" && entry.eaten);

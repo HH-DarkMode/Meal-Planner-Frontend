@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, mondayOf, weekDays } from "./weekLogic";
+import { addDays, canChooseFavourite, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, mondayOf, weekDays } from "./weekLogic";
 import type { PlanEntry } from "./mealPlanApi";
 
 // Apufunktio: tekee ateriarivin testejä varten.
@@ -56,5 +56,13 @@ describe("button rules", () => {
     expect(canToggleAccepted(entry("2026-11-10", "ACCEPTED", true))).toBe(false);
     expect(canToggleAccepted(entry("2026-11-10", "ACCEPTED", false))).toBe(true);
     expect(canToggleAccepted(entry("2026-11-10", "SUGGESTED"))).toBe(true);
+  });
+
+  it("allows choosing a favourite today or later, also for empty slots, but not for eaten meals", () => {
+    expect(canChooseFavourite("2026-11-10", today, entry("2026-11-10", "SUGGESTED"))).toBe(true);
+    expect(canChooseFavourite("2026-11-11", today, entry("2026-11-11", "ACCEPTED"))).toBe(true);  // hyväksytty, ei syöty
+    expect(canChooseFavourite("2026-11-11", today)).toBe(true);                                   // tyhjä paikka
+    expect(canChooseFavourite("2026-11-10", today, entry("2026-11-10", "ACCEPTED", true))).toBe(false); // syöty
+    expect(canChooseFavourite("2026-11-09", today)).toBe(false);                                  // mennyt päivä
   });
 });

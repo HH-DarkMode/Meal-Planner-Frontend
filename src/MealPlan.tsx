@@ -4,12 +4,12 @@ import RecipeDetails from "./RecipeDetails";
 import { isProfileComplete, type ProfileData } from "./data/profile";
 import type { SuggestedMeal } from "./data/recipeApi";
 import {
-  acceptDay, getWeek, mealTypeIcons, mealTypeLabel, rerollMeal, setAccepted, setEaten, toDateString,
+  acceptDay, chooseRecipe, getWeek, mealTypeIcons, mealTypeLabel, rerollMeal, setAccepted, setEaten, toDateString,
   type PlanEntry, type WeekPlan,
 } from "./data/mealPlanApi";
 import { addFavorite, asFavourite, getFavorites, removeFavorite } from "./data/favoritesApi";
 import { addDays, dayMealTypes, dayTitle, dietWarningText, entryKey, mondayOf } from "./data/weekLogic";
-import { MealActions, WeekView, type PlanActions } from "./WeekPlan";
+import { FavouritePicker, MealActions, WeekView, type PlanActions } from "./WeekPlan";
 
 function MealPlan({ profile }: { profile: ProfileData | null }) {
   const today = toDateString(new Date());
@@ -74,6 +74,16 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
       entry.date === target.date && entry.mealType === target.mealType ? { ...entry, ...change } : entry);
   }
 
+  // Lisää tai korvaa rivin niissä ladatuissa viikoissa, joihin päivä kuuluu.
+  // (updateOne ei riitä, koska tyhjällä paikalla ei ole vielä riviä, jota muuttaa.)
+  function upsertEntry(next: PlanEntry) {
+    setWeeks((current) => Object.fromEntries(Object.entries(current).map(([start, plan]) => {
+      if (plan === "error" || next.date < start || next.date > addDays(start, 6)) return [start, plan];
+      const others = plan.entries.filter((e) => !(e.date === next.date && e.mealType === next.mealType));
+      return [start, { ...plan, entries: [...others, next] }];
+    })));
+  }
+
   // Näkymä päivittyy heti, ja jos tallennus epäonnistuu, muutos perutaan (sama malli kuin ennen syöty-täpässä).
   function saveOptimistically(entry: PlanEntry, change: Partial<PlanEntry>, save: () => Promise<void>) {
     setActionError(null);
@@ -116,6 +126,16 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
     onOpen: setSelectedMeal,
     onToggleFavourite: toggleFavourite,
     favouriteIds,
+    // Suosikki aterian paikalle: odottaa backendin vastausta, kuten Vaihda.
+    onChooseFavourite: (date, mealType, meal) => {
+      setActionError(null);
+      setBusyKey(entryKey(date, mealType));
+      chooseRecipe(date, mealType, meal)
+        .then(upsertEntry)
+        .catch((error: Error) => setActionError(error.message))
+        .finally(() => setBusyKey(null));
+    },
+    favourites,
     busyKey,
   };
 
@@ -153,7 +173,8 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
                   <div className="recipe-meal-icon">{mealTypeIcons[type]}</div>
                   <div className="recipe-meal-info">
                     <span className="recipe-meal-type">{label}</span>
-                    <p className="recipe-empty-text">No suitable recipe found. Try changing your goals or diets on the Profile page.</p>
+                    <p className="recipe-empty-text">No suitable recipe found. Try changing your goals or diets on the Profile page, or choose a favourite.</p>
+                    <div className="week-meal-actions"><FavouritePicker date={today} mealType={type} actions={actions} /></div>
                   </div>
                 </article>;
           })}
