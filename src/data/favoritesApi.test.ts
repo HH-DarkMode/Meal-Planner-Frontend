@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { addFavorite, getFavorites, removeFavorite } from "./favoritesApi";
+import { addFavorite, asFavourite, getFavorites, removeFavorite } from "./favoritesApi";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -70,5 +70,14 @@ describe("removeFavorite", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/api\/favorites\/7$/),
       expect.objectContaining({ method: "DELETE" }));
+  });
+});
+
+describe("asFavourite", () => {
+  it("keeps the recipe but shows it as a favourite with a heart", () => {
+    const lunch = { icon: "🥗", type: "Lunch", name: "Salad", calories: 480, protein: 42, carbs: 35, fat: 16,
+      time: 15, recipeId: 5, url: "/recipes/5", dietWarning: false, unmatchedIngredients: [] };
+
+    expect(asFavourite(lunch)).toEqual({ ...lunch, type: "Favourite", icon: "♥" });
   });
 });

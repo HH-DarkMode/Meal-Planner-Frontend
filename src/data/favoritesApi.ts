@@ -20,6 +20,12 @@ export async function getFavorites(): Promise<SuggestedMeal[]> {
   return data.map((recipe) => toMeal(recipe, FAVOURITE_TYPE, FAVOURITE_ICON));
 }
 
+// Ateria suosikin muotoon: sama resepti, mutta "ateriatyypiksi" Favourite ja kuvakkeeksi sydän.
+// Käytetään, kun ateria lisätään suosikiksi Meal plan -sivulla (ei tarvitse hakea listaa uudelleen).
+export function asFavourite(meal: SuggestedMeal): SuggestedMeal {
+  return { ...meal, type: FAVOURITE_TYPE, icon: FAVOURITE_ICON };
+}
+
 // Lisää reseptin suosikkeihin (♡ → ♥). Toisto ei tee tuplaa, joten nappia voi painaa turvallisesti.
 export async function addFavorite(recipeId: number): Promise<void> {
   const response = await apiFetch(`${favoritesApi}/${recipeId}`, { method: "PUT", credentials: "include" });

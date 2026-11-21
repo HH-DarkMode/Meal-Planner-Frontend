@@ -11,6 +11,10 @@ export type PlanActions = {
   onReroll: (entry: PlanEntry) => void;
   onAcceptDay: (date: string) => void;
   onOpen: (meal: SuggestedMeal) => void;
+  onToggleFavourite: (meal: SuggestedMeal) => void;
+  // Suosikkien reseptitunnukset. null = suosikkeja ei ole vielä ladattu (tai lataus epäonnistui),
+  // jolloin sydäntä ei näytetä, ettei se näytä väärää tilaa.
+  favouriteIds: Set<number> | null;
   busyKey: string | null; // käynnissä oleva Vaihda ("päivä|ateria"), sen nappi on pois käytöstä
 };
 
@@ -116,7 +120,24 @@ export function MealActions({ entry, today, actions }: { entry: PlanEntry; today
           aria-label={`Mark ${entry.meal.name} as eaten`} />
         <span>Eaten</span>
       </label>}
+    {actions.favouriteIds &&
+      <FavouriteButton meal={entry.meal} isFavourite={actions.favouriteIds.has(entry.meal.recipeId)}
+        onToggle={actions.onToggleFavourite} />}
     <button className="icon-button" onClick={() => actions.onOpen(entry.meal)}
       aria-label={`Open recipe: ${entry.meal.name}`}>→</button>
   </div>;
+}
+
+// Sydännappi: ♡ = ei suosikki (painallus lisää), ♥ = suosikki (painallus poistaa).
+// aria-pressed kertoo ruudunlukijalle, onko nappi "päällä", ja aria-label sanoo, mitä painallus tekee.
+export function FavouriteButton({ meal, isFavourite, onToggle }: {
+  meal: SuggestedMeal;
+  isFavourite: boolean;
+  onToggle: (meal: SuggestedMeal) => void;
+}) {
+  const label = isFavourite ? `Remove ${meal.name} from favourites` : `Add ${meal.name} to favourites`;
+  return <button className={`icon-button favourite-button${isFavourite ? " is-favourite" : ""}`}
+    onClick={() => onToggle(meal)} aria-pressed={isFavourite} aria-label={label} title={label}>
+    {isFavourite ? "♥" : "♡"}
+  </button>;
 }

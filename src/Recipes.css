@@ -604,3 +604,22 @@
   align-items: center;
   gap: 8px;
 }
+
+/* Sydännappi: suosikki on punainen, ei-suosikki harmaa */
+.favourite-button {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.favourite-button.is-favourite {
+  border-color: #d6336c;
+  color: #d6336c;
+}
+
+/* Reseptinäkymä: nimi ja sydän samalle riville */
+.recipe-details-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
