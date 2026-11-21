@@ -7,7 +7,7 @@ import {
   acceptDay, chooseRecipe, getWeek, mealTypeIcons, mealTypeLabel, rerollMeal, setAccepted, setEaten, toDateString,
   type PlanEntry, type WeekPlan,
 } from "./data/mealPlanApi";
-import { addFavorite, asFavourite, getFavorites, removeFavorite } from "./data/favoritesApi";
+import { useFavourites } from "./useFavourites";
 import { addDays, dayMealTypes, dayTitle, dietWarningText, entryKey, mondayOf } from "./data/weekLogic";
 import { FavouritePicker, MealActions, WeekView, type PlanActions } from "./WeekPlan";
 
@@ -22,36 +22,11 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [selectedMeal, setSelectedMeal] = useState<SuggestedMeal | null>(null);
-  // Käyttäjän suosikit (uusin ensin). null = ei vielä ladattu tai lataus epäonnistui.
-  // Lista (eikä pelkät id:t) tarvitaan myöhemmin myös suosikin valintaan suunnitelmaan.
-  const [favourites, setFavourites] = useState<SuggestedMeal[] | null>(null);
 
   const canShow = profile !== null && isProfileComplete(profile);
 
-  // Suosikit haetaan kerran, kun profiili on valmis.
-  useEffect(() => {
-    if (!canShow) return;
-    getFavorites().then(setFavourites).catch(() => setFavourites(null));
-  }, [canShow]);
-
-  const favouriteIds = favourites ? new Set(favourites.map((meal) => meal.recipeId)) : null;
-
-  // Sydän päivittyy heti. Jos tallennus epäonnistuu, muutos perutaan ja näytetään virhe
-  // (sama malli kuin Add-napissa). Peruminen tehdään käänteisellä muutoksella eikä palauttamalla
-  // vanhaa listaa, jotta samaan aikaan painettu toinen sydän ei katoa.
-  function toggleFavourite(meal: SuggestedMeal) {
-    if (!favouriteIds) return;
-    setActionError(null);
-    const without = (list: SuggestedMeal[]) => list.filter((f) => f.recipeId !== meal.recipeId);
-    const removeFromList = (list: SuggestedMeal[] | null) => list && without(list);
-    const addToList = (list: SuggestedMeal[] | null) => list && [asFavourite(meal), ...without(list)];
-    const wasFavourite = favouriteIds.has(meal.recipeId);
-    setFavourites(wasFavourite ? removeFromList : addToList);
-    (wasFavourite ? removeFavorite(meal.recipeId) : addFavorite(meal.recipeId)).catch(() => {
-      setFavourites(wasFavourite ? addToList : removeFromList);
-      setActionError("Could not save the favourite. Try again.");
-    });
-  }
+  // Suosikit (♡/♥ ja ♥▾-lista). Haetaan, kun profiili on valmis.
+  const { favourites, favouriteIds, toggleFavourite } = useFavourites(canShow, setActionError);
 
   // Hakee tämän viikon ja näytettävän viikon. Backend luo puuttuvat ehdotukset hakiessaan.
   useEffect(() => {
