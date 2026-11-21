@@ -172,7 +172,7 @@ export async function acceptDay(date: string): Promise<void> {
   }
 }
 
-// Käyttäjän päivän ateriat järjestyksessä (kalenteri, vaihe 7).
+// Käyttäjän päivän ateriat järjestyksessä (kalenteri).
 export async function getMealTypes(): Promise<MealType[]> {
   const response = await apiFetch(`${mealPlanApi}/meal-types`, { credentials: "include" });
   if (!response.ok) {

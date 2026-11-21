@@ -20,20 +20,6 @@
   letter-spacing: 1.3px;
 }
 
-.not-implemented-badge {
-  display: inline-block;
-  margin-left: 10px;
-  padding: 5px 14px;
-  vertical-align: middle;
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-}
-
 .recipes-eyebrow {
   margin: 30px 0 0;
   color: var(--muted);
@@ -435,7 +421,7 @@
   font-size: 12px;
 }
 
-/* Reseptin avausnäkymä (RecipeDetails), käytössä Recipes- ja Meal plan -sivuilla */
+/* Reseptin avausnäkymä (RecipeDetails), käytössä Meal plan- ja My recipes -sivuilla */
 .recipe-details {
   margin-top: 40px;
   scroll-margin-top: 96px;

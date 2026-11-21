@@ -7,7 +7,7 @@ export function entryKey(date: string, mealType: MealType): string {
   return `${date}|${mealType}`;
 }
 
-// Diet-varoituksen teksti (sama kuin aiemmin Recipes-sivulla).
+// Diet-varoituksen teksti (viikkonäkymä, Today's meals ja My recipes).
 export function dietWarningText(meal: SuggestedMeal): string {
   return `Diet suitability cannot be guaranteed. Unknown ingredients: ${meal.unmatchedIngredients.join(", ")}`;
 }
