@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   acceptDay,
+  chooseRecipe,
   getSelections,
   getWeek,
   mealTypeLabel,
@@ -192,5 +193,32 @@ describe("acceptDay", () => {
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/day/accept"), expect.objectContaining({
       method: "POST", body: JSON.stringify({ date: "2026-11-09" }),
     }));
+  });
+});
+
+describe("chooseRecipe", () => {
+  // Suosikki samassa muodossa kuin getFavorites palauttaa sen.
+  const favourite = {
+    icon: "♥", type: "Favourite", name: "Salad", calories: 480, protein: 42, carbs: 35, fat: 16, time: 15,
+    recipeId: 5, url: "/recipes/5", dietWarning: true, unmatchedIngredients: ["chicken stock"],
+  };
+
+  it("sends a PUT with date, meal type and recipe and returns an accepted entry", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(recipe));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const entry = await chooseRecipe("2026-11-23", "Lunch", favourite);
+
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/selections$/), expect.objectContaining({
+      method: "PUT", body: JSON.stringify({ date: "2026-11-23", mealType: "Lunch", recipeId: 5 }),
+    }));
+    // Hyväksytty, ei syöty, aterian nimi ja kuvake, diet-varoitus säilyy suosikilta
+    expect(entry).toMatchObject({ date: "2026-11-23", mealType: "Lunch", eaten: false, status: "ACCEPTED" });
+    expect(entry.meal).toMatchObject({ recipeId: 5, type: "Lunch", icon: "🥗", dietWarning: true });
+  });
+
+  it("tells when the meal has already been eaten (409)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 409 })));
+    await expect(chooseRecipe("2026-11-23", "Lunch", favourite)).rejects.toThrow("An eaten meal cannot be changed");
   });
 });

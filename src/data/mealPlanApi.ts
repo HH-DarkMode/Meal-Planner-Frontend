@@ -119,7 +119,7 @@ export type WeekPlan = {
 };
 
 // Lähettää JSON-pyynnön meal plan -rajapintaan (PATCH/POST). Kirjautumistunnus tulee apiFetchistä.
-function sendJson(path: string, method: "PATCH" | "POST", body: unknown): Promise<Response> {
+function sendJson(path: string, method: "PATCH" | "POST" | "PUT", body: unknown): Promise<Response> {
   return apiFetch(`${mealPlanApi}${path}`, {
     method,
     credentials: "include",
@@ -172,11 +172,30 @@ export async function acceptDay(date: string): Promise<void> {
   }
 }
 
-// Käyttäjän päivän ateriat järjestyksessä (kalenteri, vaihe 7).
+// Käyttäjän päivän ateriat järjestyksessä (kalenteri).
 export async function getMealTypes(): Promise<MealType[]> {
   const response = await apiFetch(`${mealPlanApi}/meal-types`, { credentials: "include" });
   if (!response.ok) {
     throw new Error("Meal types loading failed");
   }
   return ((await response.json()) as string[]).filter(isMealType);
+}
+
+// Valitsee reseptin (esim. suosikin) aterian paikalle. Rivistä tulee hyväksytty, ja aiempi
+// ehdotus tai valinta korvautuu. Backend estää syödyn aterian vaihtamisen (409).
+// Palautettava rivi muodostetaan annetusta ateriasta, ei backendin vastauksesta, koska
+// suosikissa on jo valmiiksi diet-varoitus (tämä kutsu ei laske sitä).
+export async function chooseRecipe(date: string, mealType: MealType, meal: SuggestedMeal): Promise<PlanEntry> {
+  const response = await sendJson("/selections", "PUT", { date, mealType, recipeId: meal.recipeId });
+  if (!response.ok) {
+    throw new Error(response.status === 409 ? "An eaten meal cannot be changed" : "Could not add the recipe to the plan");
+  }
+  return {
+    date,
+    mealType,
+    eaten: false,
+    status: "ACCEPTED",
+    // Sama resepti, mutta aterian nimi ja kuvake (esim. "Lunch" ja 🥗) "Favourite"- ja ♥-tekstin tilalle.
+    meal: { ...meal, type: mealType, icon: mealTypeIcons[mealType] },
+  };
 }

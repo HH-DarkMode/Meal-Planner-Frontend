@@ -7,7 +7,7 @@ export function entryKey(date: string, mealType: MealType): string {
   return `${date}|${mealType}`;
 }
 
-// Diet-varoituksen teksti (sama kuin aiemmin Recipes-sivulla).
+// Diet-varoituksen teksti (viikkonäkymä, Today's meals ja My recipes).
 export function dietWarningText(meal: SuggestedMeal): string {
   return `Diet suitability cannot be guaranteed. Unknown ingredients: ${meal.unmatchedIngredients.join(", ")}`;
 }
@@ -55,6 +55,12 @@ export function canReroll(entry: PlanEntry, today: string): boolean {
 // Syöty: vain hyväksytylle ja vain tänään tai menneenä päivänä.
 export function canMarkEaten(entry: PlanEntry, today: string): boolean {
   return entry.status === "ACCEPTED" && entry.date <= today;
+}
+
+// Suosikin valinta (♥▾): vain tänään tai tulevaisuudessa, eikä syödylle aterialle.
+// entry puuttuu, jos paikka on tyhjä (sopivaa reseptiä ei löytynyt), ja tyhjän paikan voi täyttää.
+export function canChooseFavourite(date: string, today: string, entry?: PlanEntry): boolean {
+  return date >= today && !entry?.eaten;
 }
 
 // Syötyä ateriaa ei voi poistaa suunnitelmasta: ensin poistetaan syöty-merkintä.

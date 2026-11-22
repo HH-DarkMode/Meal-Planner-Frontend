@@ -2,10 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import "./Recipes.css";
 import type { RecipeDetails as RecipeData } from "./data/mealPlan";
 import { getRecipeDetails, type SuggestedMeal } from "./data/recipeApi";
+import { FavouriteButton } from "./WeekPlan";
 
-// Yhden reseptin ainekset ja valmistusohjeet. Käytössä sekä Recipes- että Meal plan -sivulla,
+// Yhden reseptin ainekset ja valmistusohjeet. Käytössä Meal plan- ja My recipes -sivuilla,
 // backLabel kertoo, minne "takaisin"-nappi palaa.
-function RecipeDetails({ meal, backLabel, onClose }: { meal: SuggestedMeal; backLabel: string; onClose: () => void }) {
+function RecipeDetails({ meal, backLabel, onClose, isFavourite = false, onToggleFavourite }: {
+  meal: SuggestedMeal;
+  backLabel: string;
+  onClose: () => void;
+  // Sydän näytetään vain, jos sivu antaa onToggleFavourite-funktion.
+  isFavourite?: boolean;
+  onToggleFavourite?: (meal: SuggestedMeal) => void;
+}) {
   const [state, setState] = useState<{ recipeId: number; details: RecipeData | null } | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -28,7 +36,10 @@ function RecipeDetails({ meal, backLabel, onClose }: { meal: SuggestedMeal; back
       <div className="recipe-details-icon">{meal.icon}</div>
       <div>
         <span className="recipe-meal-type">{meal.type}</span>
-        <h2>{meal.name}</h2>
+        <div className="recipe-details-title">
+          <h2>{meal.name}</h2>
+          {onToggleFavourite && <FavouriteButton meal={meal} isFavourite={isFavourite} onToggle={onToggleFavourite} />}
+        </div>
         <p>{meal.time > 0 && `⏱ ${meal.time} min · `}{meal.calories} kcal per serving · <a href={meal.url} target="_blank" rel="noreferrer">Original recipe</a></p>
         {meal.dietWarning && <p className="recipe-warning">Diet suitability cannot be guaranteed. Unknown ingredients: {meal.unmatchedIngredients.join(", ")}</p>}
         {!loaded && <p>Loading recipe...</p>}
