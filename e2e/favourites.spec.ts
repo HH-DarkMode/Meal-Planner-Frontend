@@ -81,6 +81,8 @@ async function signIn(page: Page, favourites: ReturnType<typeof recipe>[]): Prom
   });
 
   await page.goto("/");
+  // Kirjautumaton käyttäjä näkee ensin etusivun, joten lomake avataan headerista.
+  await page.getByRole("banner").getByRole("button", { name: "Sign in" }).click();
   await page.getByLabel("Username").fill("e2e-user");
   await page.getByLabel("Password").fill("password-123");
   await page.getByRole("button", { name: "Sign in" }).click();

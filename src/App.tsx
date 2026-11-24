@@ -14,7 +14,12 @@ import Auth from "./Auth";
 
 type Theme = "system" | "light" | "dark";
 type ResolvedTheme = Exclude<Theme, "system">;
-type View = "home" | "meal-plan" | "my-recipes" | "calendar" | "about" | "profile";
+type View = "home" | "meal-plan" | "my-recipes" | "calendar" | "about" | "profile" | "sign-in";
+
+// Näkymät, jotka hakevat käyttäjän tietoja backendistä. Kirjautumaton käyttäjä
+// näkee niiden tilalla kirjautumislomakkeen ja pääsee kirjautumisen jälkeen
+// suoraan sille sivulle, jota yritti avata. Home ja About ovat julkisia.
+const protectedViews: View[] = ["meal-plan", "my-recipes", "calendar", "profile"];
 
 type Navigation = {
   navigate: (view: View) => void;
@@ -82,19 +87,22 @@ function App() {
   }, []);
 
   if (authLoading) return <main className="auth-page"><p>Loading...</p></main>;
-  if (!user) return <Auth
-    notice={authNotice}
-    onAuthenticated={(authenticatedUser) => {
-      setAuthNotice(null);
-      setUser(authenticatedUser);
-      getProfile().then(setProfile).catch(() => setProfile(null));
-    }}
-  />;
+
+  const showAuth = !user && (view === "sign-in" || protectedViews.includes(view));
+
+  const handleAuthenticated = (authenticatedUser: AuthUser) => {
+    setAuthNotice(null);
+    setUser(authenticatedUser);
+    getProfile().then(setProfile).catch(() => setProfile(null));
+    if (view === "sign-in") setView("home");
+  };
 
   const handleLogout = () => {
     logout().finally(() => {
       setUser(null);
       setProfile(null);
+      setAuthNotice(null);
+      setView("home");
     });
   };
 
@@ -103,17 +111,18 @@ function App() {
   };
 
   return <div className={`app ${theme}`}>
-    <Header view={view} navigate={navigate} themePreference={themePreference} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={cycleTheme} onLogout={handleLogout} username={user.username} />
-    {view === "home" && <Home navigate={navigate} profile={profile} />}
-    {view === "meal-plan" && <MealPlan profile={profile} />}
-    {view === "my-recipes" && <MyRecipes onOpenMealPlan={() => navigate("meal-plan")} />}
-    {view === "calendar" && <Calendar />}
+    <Header view={view} navigate={navigate} themePreference={themePreference} isDarkTheme={isDarkTheme} isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((open) => !open)} onToggleTheme={cycleTheme} onLogout={handleLogout} username={user?.username ?? null} showSignIn={!showAuth} />
+    {showAuth && <Auth notice={authNotice} onAuthenticated={handleAuthenticated} />}
+    {view === "home" && <Home navigate={navigate} profile={profile} isSignedIn={user !== null} />}
     {view === "about" && <About />}
-    {view === "profile" && <Profile profile={profile} onProfileSaved={setProfile} />}
+    {user && view === "meal-plan" && <MealPlan profile={profile} />}
+    {user && view === "my-recipes" && <MyRecipes onOpenMealPlan={() => navigate("meal-plan")} />}
+    {user && view === "calendar" && <Calendar />}
+    {user && view === "profile" && <Profile profile={profile} onProfileSaved={setProfile} />}
   </div>;
 }
 
-function Header({ view, navigate, themePreference, isDarkTheme, isMenuOpen, onToggleMenu, onToggleTheme, onLogout, username }: Navigation & { view: View; themePreference: Theme; isDarkTheme: boolean; isMenuOpen: boolean; onToggleMenu: () => void; onToggleTheme: () => void; onLogout: () => void; username: string }) {
+function Header({ view, navigate, themePreference, isDarkTheme, isMenuOpen, onToggleMenu, onToggleTheme, onLogout, username, showSignIn }: Navigation & { view: View; themePreference: Theme; isDarkTheme: boolean; isMenuOpen: boolean; onToggleMenu: () => void; onToggleTheme: () => void; onLogout: () => void; username: string | null; showSignIn: boolean }) {
   const links: { view: View; label: string }[] = [
     { view: "home", label: "Home" },
     { view: "meal-plan", label: "Meal plan" },
@@ -127,14 +136,19 @@ function Header({ view, navigate, themePreference, isDarkTheme, isMenuOpen, onTo
     </button>
     <button className="menu-toggle" onClick={onToggleMenu} aria-expanded={isMenuOpen} aria-controls="main-navigation" aria-label={isMenuOpen ? "Close menu" : "Open menu"}><span /><span /><span /></button>
     <nav className={`nav ${isMenuOpen ? "is-open" : ""}`} id="main-navigation" aria-label="Main navigation">{links.map((link) => <button className={`nav-link ${view === link.view ? "active" : ""}`} key={link.view} onClick={() => navigate(link.view)}>{link.label}</button>)}</nav>
-    <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label={`Theme: ${themePreference}. Click to change`}>{themePreference === "system" ? "◐" : isDarkTheme ? "☀" : "☾"}<span>{themePreference === "system" ? "System mode" : isDarkTheme ? "Dark mode" : "Light mode"}</span></button><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">{username.slice(0, 1).toUpperCase()}</span><span className="profile-name">{username}</span></button><button className="theme-button" onClick={onLogout}>Sign out</button></div>
+    <div className={`header-actions ${isMenuOpen ? "is-open" : ""}`}><button className="theme-button" onClick={onToggleTheme} aria-label={`Theme: ${themePreference}. Click to change`}>{themePreference === "system" ? "◐" : isDarkTheme ? "☀" : "☾"}<span>{themePreference === "system" ? "System mode" : isDarkTheme ? "Dark mode" : "Light mode"}</span></button>{username
+      ? <><button className={`profile-button ${view === "profile" ? "active" : ""}`} onClick={() => navigate("profile")} aria-label="Open profile"><span className="avatar">{username.slice(0, 1).toUpperCase()}</span><span className="profile-name">{username}</span></button><button className="theme-button" onClick={onLogout}>Sign out</button></>
+      : showSignIn && <button className="theme-button" onClick={() => navigate("sign-in")}>Sign in</button>}</div>
   </header>;
 }
 
-function Home({ navigate, profile }: Navigation & { profile: ProfileData | null }) {
+function Home({ navigate, profile, isSignedIn }: Navigation & { profile: ProfileData | null; isSignedIn: boolean }) {
   const hasProfile = isProfileComplete(profile);
+  const note = !isSignedIn ? "Sign in or create an account to get started" : hasProfile ? "Your goals are active" : "Start by completing your profile";
   return <main className="page-shell">
-    <section className="hero"><div className="hero-content"><span className="badge">✦ AI MEAL PLANNER</span><p className="eyebrow">Welcome to smarter planning</p><h1>Eat well.<br /><span>Feel better.</span></h1><p className="hero-description">Plan meals that fit your routine, track your nutrition, and make healthy choices easier every day.</p><div className="hero-buttons"><button className="primary-button" onClick={() => navigate("meal-plan")}>✦ Open meal plan</button><button className="secondary-button" onClick={() => navigate("profile")}>{hasProfile ? "Edit profile" : "Complete profile"}</button></div><div className="hero-note"><span className="status-dot" /> {hasProfile ? "Your goals are active" : "Start by completing your profile"}</div></div><NutritionCard profile={profile} /></section>
+    <section className="hero"><div className="hero-content"><span className="badge">✦ AI MEAL PLANNER</span><p className="eyebrow">Welcome to smarter planning</p><h1>Eat well.<br /><span>Feel better.</span></h1><p className="hero-description">Plan meals that fit your routine, track your nutrition, and make healthy choices easier every day.</p><div className="hero-buttons"><button className="primary-button" onClick={() => navigate("meal-plan")}>✦ Open meal plan</button>{isSignedIn
+      ? <button className="secondary-button" onClick={() => navigate("profile")}>{hasProfile ? "Edit profile" : "Complete profile"}</button>
+      : <button className="secondary-button" onClick={() => navigate("sign-in")}>Sign in / Register</button>}</div><div className="hero-note"><span className="status-dot" /> {note}</div></div><NutritionCard profile={profile} /></section>
     <section className="content-section"><div className="section-heading"><div><p className="section-label">QUICK LINKS</p><h2>Everything important in one place</h2><p className="section-subtitle">Open today&apos;s meals, plan your week, or update your goals.</p></div></div><div className="hero-buttons"><button className="secondary-button" onClick={() => navigate("meal-plan")}>Meal plan</button><button className="secondary-button" onClick={() => navigate("my-recipes")}>My recipes</button><button className="secondary-button" onClick={() => navigate("profile")}>Profile</button></div></section>
   </main>;
 }

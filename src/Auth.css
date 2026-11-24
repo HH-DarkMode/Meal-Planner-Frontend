@@ -74,3 +74,32 @@
   margin: 16px 0 0;
   color: #b42318;
 }
+
+/* Lomake näytetään sovelluksen sisällä headerin alla, joten koko näytön
+   korkeutta ja omaa taustaa ei tarvita. Värit tulevat teeman muuttujista. */
+.app .auth-page {
+  min-height: auto;
+  padding: 64px 24px;
+  background: transparent;
+}
+
+.app .auth-card {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.app .auth-description {
+  color: var(--muted);
+}
+
+.app .auth-card input {
+  border-color: var(--line);
+  color: var(--text);
+  background: var(--bg);
+}
+
+.app .auth-eyebrow,
+.app .auth-switch {
+  color: var(--green);
+}
