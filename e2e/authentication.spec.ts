@@ -33,6 +33,8 @@ test("user can sign in and open the profile", async ({ page }) => {
   });
 
   await page.goto("/");
+  // Kirjautumaton käyttäjä näkee ensin etusivun, joten lomake avataan headerista.
+  await page.getByRole("banner").getByRole("button", { name: "Sign in" }).click();
   await page.getByLabel("Username").fill("e2e-user");
   await page.getByLabel("Password").fill("password-123");
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -69,6 +71,8 @@ test("expired session during profile save asks the user to sign in again", async
   });
 
   await page.goto("/");
+  // Kirjautumaton käyttäjä näkee ensin etusivun, joten lomake avataan headerista.
+  await page.getByRole("banner").getByRole("button", { name: "Sign in" }).click();
   await page.getByLabel("Username").fill("e2e-user");
   await page.getByLabel("Password").fill("password-123");
   await page.getByRole("button", { name: "Sign in" }).click();
@@ -77,4 +81,39 @@ test("expired session during profile save asks the user to sign in again", async
 
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await expect(page.getByRole("alert")).toHaveText("Your session has expired. Please sign in again.");
+});
+
+test("signed-out user sees the home page and signs in to open the meal plan", async ({ page }) => {
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({ status: 401, body: "" });
+  });
+  await page.route("**/api/auth/login", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ username: "e2e-user", token: "e2e-token" }),
+    });
+  });
+  await page.route("**/api/profile**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ username: "e2e-user", diets: [] }),
+    });
+  });
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /Eat well/ })).toBeVisible();
+  await expect(page.getByLabel("Username")).toHaveCount(0);
+
+  // Suojattu näkymä näyttää kirjautumislomakkeen, ja kirjautumisen jälkeen
+  // käyttäjä on sillä sivulla, jota yritti avata.
+  await page.getByRole("navigation").getByRole("button", { name: "Meal plan" }).click();
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await page.getByLabel("Username").fill("e2e-user");
+  await page.getByLabel("Password").fill("password-123");
+  await page.getByRole("button", { name: "Sign in" }).click();
+
+  await expect(page.getByRole("button", { name: "Open profile" })).toBeVisible();
+  await expect(page.getByRole("navigation").getByRole("button", { name: "Meal plan" })).toHaveClass(/active/);
 });
