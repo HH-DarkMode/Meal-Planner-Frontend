@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import brandLogo from "./assets/brand-logo.svg.jpg";
+import brandLogo from "/meal-planner-logo.jpeg";
 import MealPlan from "./MealPlan";
 import MyRecipes from "./MyRecipes";
 import Calendar from "./Calendar";
@@ -123,11 +123,7 @@ function Header({ view, navigate, themePreference, isDarkTheme, isMenuOpen, onTo
   ];
   return <header className="header">
     <button type="button" className="logo" onClick={() => navigate("home")} aria-label="Go to home">
-      <img className="brand-mark" src={brandLogo} alt="DarkMode AI Meal Planner logo" />
-      <span className="brand-text">
-        <span className="brand-name">DarkMode</span>
-        <span className="brand-subtitle">AI Meal Planner</span>
-      </span>
+      <img className="brand-mark" src={brandLogo} alt="Meal Planner logo" />
     </button>
     <button className="menu-toggle" onClick={onToggleMenu} aria-expanded={isMenuOpen} aria-controls="main-navigation" aria-label={isMenuOpen ? "Close menu" : "Open menu"}><span /><span /><span /></button>
     <nav className={`nav ${isMenuOpen ? "is-open" : ""}`} id="main-navigation" aria-label="Main navigation">{links.map((link) => <button className={`nav-link ${view === link.view ? "active" : ""}`} key={link.view} onClick={() => navigate(link.view)}>{link.label}</button>)}</nav>
@@ -145,15 +141,83 @@ function Home({ navigate, profile }: Navigation & { profile: ProfileData | null 
 
 function NutritionCard({ profile }: { profile: ProfileData | null }) {
   if (!profile || !isProfileComplete(profile)) {
-    return <div className="hero-card"><div className="card-header"><div><p>Nutrition goals</p><h3>Not set yet</h3></div><span className="check">＋</span></div><p className="card-empty-state">Complete and save your profile to see your calorie and macro goals here.</p></div>;
+    return <div className="hero-card nutrition-card is-empty"><div className="card-header"><div><p>Nutrition goals</p><h3>Not set yet</h3></div><span className="check">＋</span></div><p className="card-empty-state">Complete and save your profile to see your calorie and macro goals here.</p></div>;
   }
 
   const calories = profile.calories ?? 0;
   const protein = profile.protein ?? 0;
   const carbs = profile.carbs ?? 0;
   const fat = profile.fat ?? 0;
-  return <div className="hero-card"><div className="card-header"><div><p>Your nutrition goals</p><h3>{calories} <small>kcal / day</small></h3></div><span className="check">✓</span></div><div className="nutrition-grid"><NutritionValue label="Protein" value={`${protein} g`} /><NutritionValue label="Carbs" value={`${carbs} g`} /><NutritionValue label="Fat" value={`${fat} g`} /></div></div>;
+  const proteinCalories = protein * 4;
+  const carbsCalories = carbs * 4;
+  const fatCalories = fat * 9;
+  const macroCalories = proteinCalories + carbsCalories + fatCalories;
+  const proteinShare = macroCalories ? Math.round(proteinCalories / macroCalories * 100) : 0;
+  const carbsShare = macroCalories ? Math.round(carbsCalories / macroCalories * 100) : 0;
+  const fatShare = macroCalories ? 100 - proteinShare - carbsShare : 0;
+
+  return <div className="hero-card nutrition-card">
+    <div className="nutrition-card-glow" />
+    <div className="card-header nutrition-card-header">
+      <div>
+        <p>DAILY TARGET</p>
+        <h3>Your nutrition goals</h3>
+      </div>
+      <span className="nutrition-status"><i /> Active</span>
+    </div>
+
+    <div className="calorie-ring" role="img" aria-label={`${calories} kilocalories per day`}>
+      <div
+        className="calorie-ring-chart"
+        style={{
+          background: `conic-gradient(
+            #f0a64a 0 ${proteinShare}%,
+            #54b97a ${proteinShare}% ${proteinShare + carbsShare}%,
+            #7c91d8 ${proteinShare + carbsShare}% 100%
+          )`,
+        }}
+      />
+      <span className="ring-orbit ring-orbit-one" />
+      <span className="ring-orbit ring-orbit-two" />
+      <div className="calorie-ring-content">
+        <span className="calorie-spark">✦</span>
+        <strong>{calories.toLocaleString()}</strong>
+        <small>kcal / day</small>
+      </div>
+    </div>
+
+    <div className="nutrition-macros" aria-label="Daily macro targets">
+      <NutritionValue
+        label="Protein"
+        value={`${protein} g`}
+        share={proteinShare}
+        tone="protein"
+      />
+      <NutritionValue
+        label="Carbs"
+        value={`${carbs} g`}
+        share={carbsShare}
+        tone="carbs"
+      />
+      <NutritionValue
+        label="Fat"
+        value={`${fat} g`}
+        share={fatShare}
+        tone="fat"
+      />
+    </div>
+  </div>;
 }
-function NutritionValue({ label, value }: { label: string; value: string }) { return <div><span>{label}</span><strong>{value}</strong></div>; }
+function NutritionValue({ label, value, share, tone }: { label: string; value: string; share: number; tone: "protein" | "carbs" | "fat" }) {
+  return <div className={`nutrition-macro nutrition-macro-${tone}`}>
+    <div className="nutrition-macro-top">
+      <span><i />{label}</span>
+      <strong>{value}</strong>
+    </div>
+    <div className="nutrition-macro-track" aria-label={`${label}: ${share}% of macro calories`}>
+      <span style={{ width: `${share}%` }} />
+    </div>
+  </div>;
+}
 
 export default App;
