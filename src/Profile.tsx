@@ -111,6 +111,9 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
     return { calories, protein, fat, carbs };
   }, [gender, height, selectedGoal, weight]);
 
+  // customNutrition sisältää tallennetut tai käsin syötetyt arvot. Kun paino,
+  // pituus, sukupuoli tai tavoite muuttuu, se nollataan, jotta tavoitteet
+  // lasketaan uudelleen. Muuten vanhat arvot tallentuisivat uusien tietojen kanssa.
   const effectiveNutrition = customNutrition
     ? {
         calories: Number(customNutrition.calories) || 0,
@@ -242,7 +245,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           <div className="profile-field">
             <label>Weight</label>
             <div className="input-with-unit">
-              <input className="field-value field-input" type="number" min="30" max="300" placeholder="Esim. 80" value={weight} onChange={(event) => setWeight(event.target.value)} />
+              <input className="field-value field-input" type="number" min="30" max="300" placeholder="Esim. 80" value={weight} onChange={(event) => { setWeight(event.target.value); setCustomNutrition(null); }} />
               <span>kg</span>
             </div>
           </div>
@@ -259,7 +262,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
 
             <div className="profile-field">
               <label>Gender</label>
-              <select className="field-value field-input" value={gender} onChange={(event) => setGender(event.target.value)}>
+              <select className="field-value field-input" value={gender} onChange={(event) => { setGender(event.target.value); setCustomNutrition(null); }}>
                 <option value="">Select gender</option>
                 <option value="mies">Male</option>
                 <option value="nainen">Female</option>
@@ -269,7 +272,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
             <div className="profile-field">
               <label>Height</label>
               <div className="input-with-unit">
-                <input className="field-value field-input" type="number" min="120" max="230" placeholder="Esim. 180" value={height} onChange={(event) => setHeight(event.target.value)} />
+                <input className="field-value field-input" type="number" min="120" max="230" placeholder="Esim. 180" value={height} onChange={(event) => { setHeight(event.target.value); setCustomNutrition(null); }} />
                 <span>cm</span>
               </div>
             </div>
@@ -296,7 +299,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                 <input
                   type="checkbox"
                   checked={selectedGoal === goal.id}
-                  onChange={() => setSelectedGoal(goal.id)}
+                  onChange={() => { setSelectedGoal(goal.id); setCustomNutrition(null); }}
                 />
                 <span>{goal.label}</span>
               </label>
