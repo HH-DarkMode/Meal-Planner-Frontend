@@ -104,15 +104,24 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
     const numericHeight = Number(height) || 0;
     const baseCalories = 10 * numericWeight + 6.25 * numericHeight + (gender === "mies" ? 5 : -161);
     const calories = Math.round((baseCalories * 1.4 * currentGoal.adjustment) / 50) * 50;
-    const protein = Math.round(numericWeight * (selectedGoal.includes("bulk") ? 1.8 : 2));
-    const fat = Math.round(numericWeight * 0.8);
-    const carbs = Math.max(0, Math.round((calories - protein * 4 - fat * 9) / 4));
+    const proteinPerKg = selectedDiets.includes("high-protein") ? 2.2 : selectedGoal.includes("bulk") ? 1.8 : 2;
+    const protein = Math.round(numericWeight * proteinPerKg);
+    let fat = Math.round(numericWeight * 0.8);
+    let carbs = Math.max(0, Math.round((calories - protein * 4 - fat * 9) / 4));
+
+    // Low carb: hiilihydraatteja enintään 20 % kaloreista, sama raja kuin backendin
+    // reseptihaussa. Loppuosa energiasta siirtyy rasvaan.
+    const maxLowCarb = Math.round((calories * 0.2) / 4);
+    if (selectedDiets.includes("low-carb") && carbs > maxLowCarb) {
+      carbs = maxLowCarb;
+      fat = Math.max(0, Math.round((calories - protein * 4 - carbs * 4) / 9));
+    }
 
     return { calories, protein, fat, carbs };
-  }, [gender, height, selectedGoal, weight]);
+  }, [gender, height, selectedGoal, selectedDiets, weight]);
 
   // customNutrition sisältää tallennetut tai käsin syötetyt arvot. Kun paino,
-  // pituus, sukupuoli tai tavoite muuttuu, se nollataan, jotta tavoitteet
+  // pituus, sukupuoli, tavoite tai low carb / high protein muuttuu, se nollataan, jotta tavoitteet
   // lasketaan uudelleen. Muuten vanhat arvot tallentuisivat uusien tietojen kanssa.
   const effectiveNutrition = customNutrition
     ? {
@@ -127,6 +136,10 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
   const activeGoal = goals.find((goal) => goal.id === selectedGoal);
 
   const toggleDiet = (dietId: string) => {
+    // Nämä kaksi muuttavat makrojakaumaa, joten tavoitteet lasketaan uudelleen.
+    if (dietId === "high-protein" || dietId === "low-carb") {
+      setCustomNutrition(null);
+    }
     setSelectedDiets((current) => {
       const nextSelection = current.includes(dietId)
         ? current.filter((diet) => diet !== dietId)
