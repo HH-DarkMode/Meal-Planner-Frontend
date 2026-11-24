@@ -104,6 +104,11 @@ test("weekly plan shows the whole week and highlights today", async ({ page }) =
 
   // Diet-varoitus näkyy ⚠-merkkinä, ja koko teksti on hiiren alla (title)
   await expect(today.locator(".diet-warning-badge")).toHaveAttribute("title", /Unknown ingredients: chicken stock/);
+
+  // Today's meals -kortissa varoitus on ateriatyypin rivillä, ja ainesosat ovat työkaluvihjeessä
+  const warning = page.locator(".today-recipe-grid .diet-warning-badge");
+  await expect(warning).toHaveText("⚠ Diet not guaranteed");
+  await expect(warning).toHaveAttribute("title", /Unknown ingredients: chicken stock/);
 });
 
 test("user can add a suggestion to the plan", async ({ page }) => {

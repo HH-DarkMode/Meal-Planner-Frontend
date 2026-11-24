@@ -186,7 +186,7 @@ function MealPlan({ profile }: { profile: ProfileData | null }) {
   );
 }
 
-// Tämän päivän ateria isona korttina: makrot, valmistusaika, koko diet-varoitus ja napit.
+// Tämän päivän ateria isona korttina: makrot, valmistusaika, diet-varoitus ja napit.
 // Ehdotus näkyy katkoviivareunuksella, syöty vihreällä reunuksella.
 function TodayMealCard({ entry, label, today, actions }: {
   entry: PlanEntry;
@@ -199,11 +199,15 @@ function TodayMealCard({ entry, label, today, actions }: {
   return <article className={`recipe-meal-card${entry.eaten ? " is-eaten" : ""}${suggested ? " is-suggested" : ""}`}>
     <div className="recipe-meal-icon">{meal.icon}</div>
     <div className="recipe-meal-info">
-      <span className="recipe-meal-type">{label}{suggested && " · suggestion"}</span>
+      {/* Diet-varoitus on ateriatyypin rivillä, joten se ei lisää korttiin riviä.
+          Puuttuvat ainesosat näkyvät työkaluvihjeessä ja reseptinäkymässä. */}
+      <span className="recipe-meal-type">
+        {label}{suggested && " · suggestion"}
+        {meal.dietWarning && <> · <abbr className="diet-warning-badge" title={dietWarningText(meal)}>⚠ Diet not guaranteed</abbr></>}
+      </span>
       <h3>{meal.name}</h3>
       <div className="recipe-meal-meta"><span>{meal.calories} kcal</span><span>{meal.protein} g protein</span><span>{meal.carbs} g carbs</span></div>
       {meal.time > 0 && <p className="recipe-time">⏱ {meal.time} min</p>}
-      {meal.dietWarning && <p className="recipe-warning">{dietWarningText(meal)}</p>}
       <MealActions entry={entry} today={today} actions={actions} />
     </div>
   </article>;

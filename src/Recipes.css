@@ -82,6 +82,8 @@
 .today-recipe-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  /* Kaikki rivit yhtä korkeita, jotta kortit ovat samankokoisia. */
+  grid-auto-rows: 1fr;
   gap: 14px;
 }
 
@@ -115,6 +117,15 @@
 .recipe-meal-info {
   min-width: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+/* Napit kortin alareunaan, jolloin ne ovat samalla korkeudella vierekkäisissä korteissa. */
+.recipe-meal-info > .week-meal-actions {
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 .recipe-meal-type {
@@ -167,17 +178,27 @@
   color: #fff;
 }
 
-/* "Syöty"-täppä aterian kortissa (mealplan-sivu) */
+/* "Syöty"-täppä aterian kortissa (mealplan-sivu). Ruudun yläreuna on nappien
+   yläreunan tasalla, ja Eaten-teksti on sen alla. Teksti on irrotettu asettelusta
+   (position: absolute), joten se ei kasvata nappiriviä eikä korttia. */
 .eaten-check {
+  position: relative;
+  align-self: flex-start;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 44px;
-  padding: 4px 6px;
+  justify-content: center;
+  min-width: 36px;
   color: var(--muted);
   font-size: 11px;
   cursor: pointer;
+}
+
+.eaten-check span {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .eaten-check input {
@@ -349,6 +370,11 @@
   .today-recipe-grid,
   .week-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* Allekkain olevien korttien ei tarvitse olla samankorkuisia. */
+  .today-recipe-grid {
+    grid-auto-rows: auto;
   }
 
   .recipes-section-heading {
@@ -535,9 +561,7 @@
   gap: 6px;
 }
 
-.recipe-meal-info .week-meal-actions {
-  margin-top: 10px;
-}
+
 
 .week-meal-actions .recipe-approve-button {
   margin-top: 0;
