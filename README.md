@@ -39,6 +39,43 @@ Reseptin nimi, ainesosat, valmistusohjeet sekä ravintoarvot.
 
 Automaattisesti meal planin perusteella muodostettu ostoslista.
 
+## Ravintotavoitteiden laskenta
+
+Profiilisivu laskee käyttäjän tiedoista arvion päivittäisistä tavoitteista
+([src/Profile.tsx](src/Profile.tsx)). Arvoja voi muokata käsin ennen tallennusta.
+
+1. **Perusaineenvaihdunta** Mifflin-St Jeorin kaavalla ilman ikätermiä, koska
+   ikää ei kysytä: 10 × paino (kg) + 6,25 × pituus (cm) + 5 (mies) tai − 161 (nainen).
+2. **Kalorit** = perusaineenvaihdunta × 1,4 (aktiivisuuskerroin) × tavoitteen
+   kerroin, pyöristettynä 50 kcal:n tarkkuuteen.
+
+   | Tavoite | Kerroin |
+   |---|---|
+   | Aggressive bulk | 1,2 |
+   | Bulk | 1,1 |
+   | Healthy diet | 1,0 |
+   | Cut | 0,85 |
+   | Aggressive cut | 0,75 |
+
+3. **Proteiini** 2,0 g painokiloa kohden. Bulk ja aggressive bulk 1,8 g/kg.
+   High protein -ruokavalio 2,2 g/kg tavoitteesta riippumatta.
+4. **Rasva** 0,8 g/kg.
+5. **Hiilihydraatit** saavat loput kalorit (proteiini ja hiilihydraatit 4 kcal/g, rasva 9 kcal/g).
+6. **Low carb** rajaa hiilihydraatit enintään 20 %:iin kaloreista. Silloin rasva
+   saa loput kalorit.
+
+Esimerkiksi 70 kg, 180 cm, mies, aggressive bulk ja low carb:
+3050 kcal, proteiini 126 g, hiilihydraatit 153 g, rasva 215 g.
+
+Kun painoa, pituutta, sukupuolta, tavoitetta, low carbia tai high proteinia
+muutetaan, tavoitteet lasketaan uudelleen ja käsin syötetyt arvot korvautuvat.
+Muut ruokavaliot (esim. vegan) eivät vaikuta tavoitteisiin.
+
+Ruokavaliot vaikuttavat myös reseptiehdotuksiin. Backend ehdottaa low carb
+-käyttäjälle vain reseptejä, joissa hiilihydraateista tulee enintään 20 %
+energiasta, ja high protein -käyttäjälle reseptejä, joissa proteiinista tulee
+vähintään 25 % energiasta.
+
 ## Toteutusteknologiat
 
 Frontendin alustavasti suunnitellut teknologiat ovat:

@@ -94,6 +94,11 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
       .finally(() => setIsLoading(false));
   }, [initialProfile]);
 
+  // Ravintotavoitteiden arvio. Perusaineenvaihdunta lasketaan Mifflin-St Jeorin
+  // kaavalla ilman ikätermiä (ikää ei kysytä). Se kerrotaan aktiivisuuskertoimella
+  // 1,4 ja tavoitteen kertoimella ja pyöristetään 50 kcal:n tarkkuuteen. Proteiini
+  // ja rasva lasketaan painosta, ja hiilihydraatit saavat loput kalorit.
+  // Kaava on avattu README:ssa.
   const nutrition = useMemo(() => {
     if (!weight || !height || !gender) {
       return { calories: 0, protein: 0, fat: 0, carbs: 0 };
@@ -121,8 +126,9 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
   }, [gender, height, selectedGoal, selectedDiets, weight]);
 
   // customNutrition sisältää tallennetut tai käsin syötetyt arvot. Kun paino,
-  // pituus, sukupuoli, tavoite tai low carb / high protein muuttuu, se nollataan, jotta tavoitteet
-  // lasketaan uudelleen. Muuten vanhat arvot tallentuisivat uusien tietojen kanssa.
+  // pituus, sukupuoli, tavoite, low carb tai high protein muuttuu, se nollataan,
+  // jotta tavoitteet lasketaan uudelleen. Muuten vanhat arvot tallentuisivat
+  // uusien tietojen kanssa.
   const effectiveNutrition = customNutrition
     ? {
         calories: Number(customNutrition.calories) || 0,
