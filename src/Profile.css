@@ -303,6 +303,17 @@ select.field-input {
   accent-color: var(--green);
 }
 
+.diet-option.is-included {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.diet-included-note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .goal-summary {
   padding-top: 4px;
 }

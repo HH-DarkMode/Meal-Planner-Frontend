@@ -76,3 +76,26 @@ test("high protein raises protein to 2.2 g per kg", async ({ page }) => {
 
   expect(saved[0].protein).toBe(154);
 });
+
+test("vegan includes vegetarian and dairy-free, which are saved only as vegan", async ({ page }) => {
+  const saved = await mockProfileApi(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open profile" }).click();
+  await page.getByLabel("Vegetarian").check();
+  await page.getByLabel("Vegan", { exact: true }).check();
+
+  for (const diet of ["Vegetarian", "Dairy-free"]) {
+    const checkbox = page.getByLabel(diet);
+    await expect(checkbox).toBeChecked();
+    await expect(checkbox).toBeDisabled();
+  }
+  await expect(page.getByText("included in Vegan")).toHaveCount(2);
+
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+  expect(saved[0].diets).toEqual(["vegan"]);
+
+  await page.getByLabel("Vegan", { exact: true }).uncheck();
+  await expect(page.getByLabel("Vegetarian")).not.toBeChecked();
+  await expect(page.getByLabel("Vegetarian")).toBeEnabled();
+});

@@ -20,6 +20,14 @@ const dietaryOptions = [
   { id: "low-carb", label: "Low carb" },
 ];
 
+// Vegaaninen ruokavalio on aina myös kasvis- ja maidoton. Kun Vegan on valittu,
+// nämä näytetään valittuina mutta lukittuina, eikä niitä tallenneta erikseen.
+const includedInVegan = ["vegetarian", "dairy-free"];
+
+function withoutIncludedDiets(diets: string[]): string[] {
+  return diets.includes("vegan") ? diets.filter((diet) => !includedInVegan.includes(diet)) : diets;
+}
+
 const goalDescriptions: Record<string, string> = {
   "aggressive-bulk": "Aggressive bulk adds calories and energy quickly to support maximum muscle growth.",
   bulk: "Bulk supports more gradual muscle growth with slightly more energy than a maintenance diet.",
@@ -44,7 +52,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
   const [height, setHeight] = useState(initialProfile?.height === null || initialProfile?.height === undefined ? "" : String(initialProfile.height));
   const [mealsPerDay, setMealsPerDay] = useState(initialProfile?.mealsPerDay === null || initialProfile?.mealsPerDay === undefined ? "" : String(initialProfile.mealsPerDay));
   const [selectedGoal, setSelectedGoal] = useState(initialProfile?.goal ?? "");
-  const [selectedDiets, setSelectedDiets] = useState<string[]>(initialProfile?.diets ?? []);
+  const [selectedDiets, setSelectedDiets] = useState<string[]>(withoutIncludedDiets(initialProfile?.diets ?? []));
   const [focusedDiet, setFocusedDiet] = useState<string>(initialProfile?.diets[0] ?? "");
   const [customNutrition, setCustomNutrition] = useState<{
     calories: string;
@@ -74,7 +82,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
         setMealsPerDay(profile.mealsPerDay === null || profile.mealsPerDay === undefined ? "" : String(profile.mealsPerDay));
         setGender(profile.gender);
         setSelectedGoal(profile.goal);
-        setSelectedDiets(profile.diets ?? []);
+        setSelectedDiets(withoutIncludedDiets(profile.diets ?? []));
         if (profile.calories !== undefined && profile.calories !== null) {
           setCustomNutrition({
             calories: String(profile.calories),
@@ -147,9 +155,9 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
       setCustomNutrition(null);
     }
     setSelectedDiets((current) => {
-      const nextSelection = current.includes(dietId)
+      const nextSelection = withoutIncludedDiets(current.includes(dietId)
         ? current.filter((diet) => diet !== dietId)
-        : [...current, dietId];
+        : [...current, dietId]);
 
       if (nextSelection.length > 0) {
         setFocusedDiet(dietId);
@@ -332,16 +340,22 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           </div>
 
           <div className="diet-options">
-            {dietaryOptions.map((diet) => (
-              <label className={`diet-option ${selectedDiets.includes(diet.id) ? "is-selected" : ""}`} key={diet.id}>
-                <input
-                  type="checkbox"
-                  checked={selectedDiets.includes(diet.id)}
-                  onChange={() => toggleDiet(diet.id)}
-                />
-                <span>{diet.label}</span>
-              </label>
-            ))}
+            {dietaryOptions.map((diet) => {
+              const isIncluded = selectedDiets.includes("vegan") && includedInVegan.includes(diet.id);
+              const isSelected = isIncluded || selectedDiets.includes(diet.id);
+              return (
+                <label className={`diet-option ${isSelected ? "is-selected" : ""} ${isIncluded ? "is-included" : ""}`} key={diet.id}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    disabled={isIncluded}
+                    onChange={() => toggleDiet(diet.id)}
+                  />
+                  <span>{diet.label}</span>
+                  {isIncluded && <small className="diet-included-note">included in Vegan</small>}
+                </label>
+              );
+            })}
           </div>
 
           {selectedDiets.length > 0 && (
