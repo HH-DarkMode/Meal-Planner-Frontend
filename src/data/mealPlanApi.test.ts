@@ -201,6 +201,7 @@ describe("chooseRecipe", () => {
   const favourite = {
     icon: "♥", type: "Favourite", name: "Salad", calories: 480, protein: 42, carbs: 35, fat: 16, time: 15,
     recipeId: 5, url: "/recipes/5", dietWarning: true, unmatchedIngredients: ["chicken stock"],
+    veganSwapIngredients: [],
   };
 
   it("sends a PUT with date, meal type and recipe and returns an accepted entry", async () => {

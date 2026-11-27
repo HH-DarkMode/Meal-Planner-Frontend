@@ -12,6 +12,13 @@ export function dietWarningText(meal: SuggestedMeal): string {
   return `Diet suitability cannot be guaranteed. Unknown ingredients: ${meal.unmatchedIngredients.join(", ")}`;
 }
 
+// Vegaanin korvausvinkki (viikkonäkymä, Today's meals, reseptinäkymä ja My recipes).
+// Tyhjä teksti, jos korvattavaa ei ole (muut kuin vegaanit tai resepti ilman maitotuotteita ym.).
+export function veganSwapText(meal: SuggestedMeal): string {
+  if (meal.veganSwapIngredients.length === 0) return "";
+  return `Vegan swap: ${meal.veganSwapIngredients.join(", ")} → use plant-based alternatives.`;
+}
+
 // Päivämäärät ovat muodossa YYYY-MM-DD, joten niitä voi vertailla suoraan merkkijonoina.
 
 // Viikon maanantai annetun päivän ympäriltä (käyttää kalenterin valmista weekRange-funktiota).

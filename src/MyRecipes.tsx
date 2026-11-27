@@ -2,7 +2,7 @@ import "./Recipes.css";
 import { useState } from "react";
 import RecipeDetails from "./RecipeDetails";
 import type { SuggestedMeal } from "./data/recipeApi";
-import { dietWarningText } from "./data/weekLogic";
+import { dietWarningText, veganSwapText } from "./data/weekLogic";
 import { useFavourites } from "./useFavourites";
 import { FavouriteButton } from "./WeekPlan";
 
@@ -70,6 +70,7 @@ function FavouriteCard({ meal, onToggleFavourite, onOpen }: {
       </div>
       {meal.time > 0 && <p className="recipe-time">⏱ {meal.time} min</p>}
       {meal.dietWarning && <p className="recipe-warning">{dietWarningText(meal)}</p>}
+      {veganSwapText(meal) && <p className="recipe-vegan-swap">🌱 {veganSwapText(meal)}</p>}
       <div className="week-meal-actions">
         <FavouriteButton meal={meal} isFavourite onToggle={onToggleFavourite} />
         <button className="icon-button" onClick={() => onOpen(meal)} aria-label={`Open recipe: ${meal.name}`}>→</button>

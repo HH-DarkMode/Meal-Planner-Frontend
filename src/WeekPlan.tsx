@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 
 import type { SuggestedMeal } from "./data/recipeApi";
 import { mealTypeIcons, mealTypeLabel, type MealType, type PlanEntry } from "./data/mealPlanApi";
 import {
-  canChooseFavourite, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, dayTitle, dietWarningText, entryKey, weekDays,
+  canChooseFavourite, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, dayTitle, dietWarningText, entryKey, veganSwapText, weekDays,
 } from "./data/weekLogic";
 
 // Toiminnot, jotka Meal plan -sivu antaa viikkonäkymälle ja Today's meals -korteille.
@@ -95,7 +95,10 @@ function PlanMealRow({ entry, label, today, actions }: {
   return <div className={`week-meal ${entry.status === "ACCEPTED" ? "is-accepted" : "is-suggested"}`}>
     <span className="week-meal-icon">{meal.icon}</span>
     <div className="week-meal-info">
-      <span>{label}{meal.dietWarning && <abbr className="diet-warning-badge" title={dietWarningText(meal)}> ⚠</abbr>}</span>
+      <span>{label}
+        {meal.dietWarning && <abbr className="diet-warning-badge" title={dietWarningText(meal)}> ⚠</abbr>}
+        {veganSwapText(meal) && <abbr className="vegan-swap-badge" title={veganSwapText(meal)}> 🌱</abbr>}
+      </span>
       <strong title={meal.name}>{meal.name}</strong>
       <small>{meal.calories} kcal</small>
     </div>
