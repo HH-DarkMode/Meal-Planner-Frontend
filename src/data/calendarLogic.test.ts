@@ -11,7 +11,7 @@ function entry(date: string, eaten: boolean, calories: number): PlanEntry {
     status: "ACCEPTED", // kalenteri saa vain hyväksyttyjä rivejä
     meal: {
       icon: "🥗", type: "Lunch", name: "Salad", calories, protein: 10, carbs: 20, fat: 5, time: 15,
-      recipeId: 1, url: "", dietWarning: false, unmatchedIngredients: [],
+      recipeId: 1, url: "", dietWarning: false, unmatchedIngredients: [], veganSwapIngredients: [],
     },
   };
 }

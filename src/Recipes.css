@@ -604,6 +604,19 @@
   cursor: help;
 }
 
+/* Vegaanin korvausvinkki: vihreä (teeman väri), koko teksti hiiren alla merkissä */
+.vegan-swap-badge {
+  color: var(--green);
+  text-decoration: none;
+  cursor: help;
+}
+
+.recipe-vegan-swap {
+  margin: 8px 0 0;
+  color: var(--green);
+  font-size: 0.85rem;
+}
+
 .week-accept-all {
   margin-top: 14px;
 }

@@ -8,7 +8,7 @@ import {
   type PlanEntry, type WeekPlan,
 } from "./data/mealPlanApi";
 import { useFavourites } from "./useFavourites";
-import { addDays, dayMealTypes, dayTitle, dietWarningText, entryKey, mondayOf } from "./data/weekLogic";
+import { addDays, dayMealTypes, dayTitle, dietWarningText, entryKey, mondayOf, veganSwapText } from "./data/weekLogic";
 import { FavouritePicker, MealActions, WeekView, type PlanActions } from "./WeekPlan";
 
 function MealPlan({ profile }: { profile: ProfileData | null }) {
@@ -200,10 +200,11 @@ function TodayMealCard({ entry, label, today, actions }: {
     <div className="recipe-meal-icon">{meal.icon}</div>
     <div className="recipe-meal-info">
       {/* Diet-varoitus on ateriatyypin rivillä, joten se ei lisää korttiin riviä.
-          Puuttuvat ainesosat näkyvät työkaluvihjeessä ja reseptinäkymässä. */}
+          Puuttuvat ainesosat näkyvät työkaluvihjeessä ja reseptinäkymässä. Samoin vegaanin korvausvinkki. */}
       <span className="recipe-meal-type">
         {label}{suggested && " · suggestion"}
         {meal.dietWarning && <> · <abbr className="diet-warning-badge" title={dietWarningText(meal)}>⚠ Diet not guaranteed</abbr></>}
+        {veganSwapText(meal) && <> · <abbr className="vegan-swap-badge" title={veganSwapText(meal)}>🌱 Vegan swap</abbr></>}
       </span>
       <h3>{meal.name}</h3>
       <div className="recipe-meal-meta"><span>{meal.calories} kcal</span><span>{meal.protein} g protein</span><span>{meal.carbs} g carbs</span></div>

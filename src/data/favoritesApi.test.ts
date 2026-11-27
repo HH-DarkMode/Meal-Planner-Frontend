@@ -35,6 +35,8 @@ describe("getFavorites", () => {
     expect(result).toEqual([expect.objectContaining({
       recipeId: 7, name: "Veggie curry", type: "Favourite", icon: "♥",
       calories: 521, time: 30, dietWarning: true,
+      // backend ei lähettänyt korvausvinkkiä, joten lista on tyhjä
+      veganSwapIngredients: [],
     })]);
   });
 
@@ -76,7 +78,8 @@ describe("removeFavorite", () => {
 describe("asFavourite", () => {
   it("keeps the recipe but shows it as a favourite with a heart", () => {
     const lunch = { icon: "🥗", type: "Lunch", name: "Salad", calories: 480, protein: 42, carbs: 35, fat: 16,
-      time: 15, recipeId: 5, url: "/recipes/5", dietWarning: false, unmatchedIngredients: [] };
+      time: 15, recipeId: 5, url: "/recipes/5", dietWarning: false, unmatchedIngredients: [],
+      veganSwapIngredients: [] };
 
     expect(asFavourite(lunch)).toEqual({ ...lunch, type: "Favourite", icon: "♥" });
   });

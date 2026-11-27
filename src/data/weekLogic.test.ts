@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, canChooseFavourite, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, mondayOf, weekDays } from "./weekLogic";
+import { addDays, canChooseFavourite, canMarkEaten, canReroll, canToggleAccepted, dayMealTypes, mondayOf, veganSwapText, weekDays } from "./weekLogic";
 import type { PlanEntry } from "./mealPlanApi";
 
 // Apufunktio: tekee ateriarivin testejä varten.
@@ -7,7 +7,7 @@ function entry(date: string, status: PlanEntry["status"], eaten = false, mealTyp
   return {
     date, mealType, eaten, status,
     meal: { icon: "🥗", type: mealType, name: "Salad", calories: 500, protein: 30, carbs: 50, fat: 15, time: 15,
-      recipeId: 1, url: "", dietWarning: false, unmatchedIngredients: [] },
+      recipeId: 1, url: "", dietWarning: false, unmatchedIngredients: [], veganSwapIngredients: [] },
   };
 }
 
@@ -64,5 +64,16 @@ describe("button rules", () => {
     expect(canChooseFavourite("2026-11-11", today)).toBe(true);                                   // tyhjä paikka
     expect(canChooseFavourite("2026-11-10", today, entry("2026-11-10", "ACCEPTED", true))).toBe(false); // syöty
     expect(canChooseFavourite("2026-11-09", today)).toBe(false);                                  // mennyt päivä
+  });
+});
+
+describe("veganSwapText", () => {
+  it("lists the recipe's swappable ingredients", () => {
+    const meal = { ...entry("2026-11-10", "SUGGESTED").meal, veganSwapIngredients: ["butter", "eggs"] };
+    expect(veganSwapText(meal)).toBe("Vegan swap: butter, eggs → use plant-based alternatives.");
+  });
+
+  it("is empty when there is nothing to swap", () => {
+    expect(veganSwapText(entry("2026-11-10", "SUGGESTED").meal)).toBe("");
   });
 });

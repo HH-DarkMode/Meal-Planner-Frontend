@@ -10,6 +10,8 @@ export type SuggestedMeal = Meal & {
   url: string;
   dietWarning: boolean;
   unmatchedIngredients: string[];
+  // Vegaanille korvattavat ainesosat (esim. butter, eggs). Tyhjä lista muille.
+  veganSwapIngredients: string[];
 };
 
 export type BackendRecipe = {
@@ -24,6 +26,8 @@ export type BackendRecipe = {
   carbsPerServing: number;
   unmatchedIngredients: string[];
   dietWarning: boolean;
+  // Valinnainen: kalenterin vastauksissa kenttää ei käytetä, ja vanha backend ei lähetä sitä.
+  veganSwapIngredients?: string[];
 };
 
 export function toMeal(recipe: BackendRecipe, type: string, icon: string): SuggestedMeal {
@@ -41,6 +45,7 @@ export function toMeal(recipe: BackendRecipe, type: string, icon: string): Sugge
     url: recipe.url,
     dietWarning: recipe.dietWarning,
     unmatchedIngredients: recipe.unmatchedIngredients,
+    veganSwapIngredients: recipe.veganSwapIngredients ?? [],
   };
 }
 

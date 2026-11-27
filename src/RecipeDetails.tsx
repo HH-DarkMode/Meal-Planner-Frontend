@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./Recipes.css";
 import type { RecipeDetails as RecipeData } from "./data/mealPlan";
 import { getRecipeDetails, type SuggestedMeal } from "./data/recipeApi";
+import { dietWarningText, veganSwapText } from "./data/weekLogic";
 import { FavouriteButton } from "./WeekPlan";
 
 // Yhden reseptin ainekset ja valmistusohjeet. Käytössä Meal plan- ja My recipes -sivuilla,
@@ -41,7 +42,8 @@ function RecipeDetails({ meal, backLabel, onClose, isFavourite = false, onToggle
           {onToggleFavourite && <FavouriteButton meal={meal} isFavourite={isFavourite} onToggle={onToggleFavourite} />}
         </div>
         <p>{meal.time > 0 && `⏱ ${meal.time} min · `}{meal.calories} kcal per serving · <a href={meal.url} target="_blank" rel="noreferrer">Original recipe</a></p>
-        {meal.dietWarning && <p className="recipe-warning">Diet suitability cannot be guaranteed. Unknown ingredients: {meal.unmatchedIngredients.join(", ")}</p>}
+        {meal.dietWarning && <p className="recipe-warning">{dietWarningText(meal)}</p>}
+        {veganSwapText(meal) && <p className="recipe-vegan-swap">🌱 {veganSwapText(meal)}</p>}
         {!loaded && <p>Loading recipe...</p>}
         {loaded && !loaded.details && <p>Could not load the recipe.</p>}
         {loaded?.details && <>
