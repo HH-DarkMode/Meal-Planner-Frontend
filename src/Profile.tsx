@@ -272,7 +272,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
           <div className="profile-field">
             <label>Weight</label>
             <div className="input-with-unit">
-              <input className="field-value field-input" type="number" min="30" max="300" placeholder="Esim. 80" value={weight} onChange={(event) => { setWeight(event.target.value); setCustomNutrition(null); }} />
+              <input className="field-value field-input" type="number" min="30" max="300" placeholder="e.g. 80" value={weight} onChange={(event) => { setWeight(event.target.value); setCustomNutrition(null); }} />
               <span>kg</span>
             </div>
           </div>
@@ -299,7 +299,7 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
             <div className="profile-field">
               <label>Height</label>
               <div className="input-with-unit">
-                <input className="field-value field-input" type="number" min="120" max="230" placeholder="Esim. 180" value={height} onChange={(event) => { setHeight(event.target.value); setCustomNutrition(null); }} />
+                <input className="field-value field-input" type="number" min="120" max="230" placeholder="e.g. 180" value={height} onChange={(event) => { setHeight(event.target.value); setCustomNutrition(null); }} />
                 <span>cm</span>
               </div>
             </div>
@@ -411,7 +411,13 @@ function Profile({ profile: initialProfile, onProfileSaved }: { profile: Profile
                 <span>carbs</span>
               </label>
             </div>
-            <p className="estimate-note">This estimate is based on your details and an activity factor of 1.4.</p>
+            {/* Mistä tavoite tulee: paino, pituus, sukupuoli ja tavoite (aktiivisuuskerroin 1,4 = kevyesti aktiivinen).
+                Ruokavalioista vain High protein ja Low carb muuttavat makroja, muut vaikuttavat vain resepteihin. */}
+            <p className="estimate-note">
+              Based on your weight, height, gender and goal, assuming a lightly active lifestyle. You can also edit the numbers yourself.
+              <br />
+              High protein and Low carb change the macro split. Other diets only affect which recipes you get.
+            </p>
           </div>
 
           {selectedDiets.length > 0 && (

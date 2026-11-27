@@ -39,7 +39,7 @@ test("changing weight recalculates nutrition goals and updates the home page", a
   await expect(page.getByRole("img", { name: "2400 kilocalories per day" })).toBeVisible();
 
   await page.getByRole("button", { name: "Open profile" }).click();
-  await page.getByPlaceholder("Esim. 80").fill("100");
+  await page.getByPlaceholder("e.g. 80").fill("100");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Changes saved.")).toBeVisible();
 
